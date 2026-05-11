@@ -1,0 +1,11 @@
+[Unit]
+Description=Disk monitor — cada 30 min
+
+[Timer]
+OnBootSec=300
+OnUnitActiveSec=1800
+Unit=monitor-disk.service
+AccuracySec=60
+
+[Install]
+WantedBy=timers.target

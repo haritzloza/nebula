@@ -1,0 +1,2 @@
+# Matugen (Material You color generator) — AUR
+matugen-bin

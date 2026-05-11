@@ -1,0 +1,4 @@
+# Monitors deps (lm_sensors para temperatura, upower ya viene en base)
+lm_sensors
+upower
+libnotify

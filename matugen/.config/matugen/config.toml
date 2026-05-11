@@ -1,0 +1,30 @@
+# matugen — paletas Material You desde el wallpaper
+# Salida DIRECTA en cada ~/.config/<app>/colors.* — Stow tree-unfolds las dirs
+# automáticamente al detectar archivos reales coexistiendo con symlinks.
+
+[config]
+reload_apps = true
+set_wallpaper = false
+wallpaper_tool = "None"
+
+[templates.hyprland]
+input_path  = "~/.config/matugen/templates/hyprland.conf"
+output_path = "~/.config/hypr/colors.conf"
+
+[templates.waybar]
+input_path  = "~/.config/matugen/templates/waybar.css"
+output_path = "~/.config/waybar/colors.css"
+post_hook   = "pkill -SIGUSR2 waybar 2>/dev/null || true"
+
+[templates.rofi]
+input_path  = "~/.config/matugen/templates/rofi-colors.rasi"
+output_path = "~/.config/rofi/themes/colors.rasi"
+
+[templates.kitty]
+input_path  = "~/.config/matugen/templates/kitty.conf"
+output_path = "~/.config/kitty/colors.conf"
+
+[templates.swaync]
+input_path  = "~/.config/matugen/templates/swaync.css"
+output_path = "~/.config/swaync/colors.css"
+post_hook   = "swaync-client --reload-css 2>/dev/null || true"

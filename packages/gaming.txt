@@ -1,0 +1,16 @@
+# Capa gaming (opcional: install.sh --gaming)
+steam
+lutris
+gamemode
+lib32-gamemode
+gamescope
+mangohud
+lib32-mangohud
+goverlay
+wine
+wine-mono
+wine-gecko
+winetricks
+vulkan-tools
+vkbasalt
+discord

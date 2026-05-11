@@ -1,0 +1,53 @@
+/* Catppuccin-Mocha launcher */
+* {
+    bg:        #1e1e2e;
+    bg-alt:    #313244;
+    fg:        #cdd6f4;
+    fg-alt:    #a6adc8;
+    accent:    #cba6f7;
+    accent2:   #89b4fa;
+    urgent:    #f38ba8;
+
+    background-color: transparent;
+    text-color: @fg;
+    font: "JetBrainsMono Nerd Font 12";
+}
+
+window {
+    width: 600px;
+    border-radius: 16px;
+    background-color: @bg;
+    border: 2px solid @accent;
+    padding: 18px;
+}
+
+mainbox { children: [inputbar, listview]; spacing: 12px; }
+
+inputbar {
+    background-color: @bg-alt;
+    border-radius: 10px;
+    padding: 10px 14px;
+    children: [prompt, entry];
+    spacing: 10px;
+}
+
+prompt { text-color: @accent; }
+entry  { placeholder: "Buscar…"; placeholder-color: @fg-alt; }
+
+listview {
+    lines: 8;
+    columns: 1;
+    spacing: 4px;
+    scrollbar: false;
+}
+
+element {
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+element selected {
+    background-color: @accent;
+    text-color: @bg;
+}
+element-icon { size: 22px; padding: 0 10px 0 0; background-color: transparent; }
+element-text { text-color: inherit; vertical-align: 0.5; }

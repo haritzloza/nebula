@@ -1,0 +1,11 @@
+[Unit]
+Description=Temperature monitor — cada 60s
+
+[Timer]
+OnBootSec=30
+OnUnitActiveSec=60
+Unit=monitor-temp.service
+AccuracySec=5
+
+[Install]
+WantedBy=timers.target

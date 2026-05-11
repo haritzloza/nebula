@@ -1,0 +1,6 @@
+[Unit]
+Description=Battery monitor (notify on low/critical)
+
+[Service]
+Type=oneshot
+ExecStart=%h/.config/scripts/monitor-battery.sh

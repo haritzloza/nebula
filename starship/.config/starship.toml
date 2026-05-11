@@ -1,0 +1,62 @@
+# Starship — minimal, dos líneas, Catppuccin
+add_newline = true
+command_timeout = 800
+
+format = """
+[╭─](bold #cba6f7) $directory$git_branch$git_status$python$nodejs$rust$golang$docker_context$kubernetes$aws$cmd_duration
+[╰─](bold #cba6f7)$character """
+
+[character]
+success_symbol = "[](bold #a6e3a1)"
+error_symbol   = "[](bold #f38ba8)"
+vimcmd_symbol  = "[](bold #f9e2af)"
+
+[directory]
+truncation_length = 3
+truncate_to_repo  = true
+style             = "bold #89b4fa"
+read_only         = " "
+format = "[ $path]($style)[$read_only]($read_only_style) "
+
+[git_branch]
+symbol = " "
+style  = "bold #f5c2e7"
+format = "on [$symbol$branch]($style) "
+
+[git_status]
+style = "bold #f38ba8"
+format = '([\[$all_status$ahead_behind\]]($style) )'
+
+[cmd_duration]
+min_time = 2000
+format = "took [$duration](bold #f9e2af) "
+
+[python]
+symbol = " "
+style  = "bold #f9e2af"
+
+[nodejs]
+symbol = " "
+style  = "bold #a6e3a1"
+
+[rust]
+symbol = " "
+style  = "bold #fab387"
+
+[golang]
+symbol = " "
+style  = "bold #94e2d5"
+
+[docker_context]
+symbol = " "
+style  = "bold #89b4fa"
+only_with_files = true
+
+[kubernetes]
+symbol = "󱃾 "
+style  = "bold #b4befe"
+disabled = false
+
+[aws]
+symbol = " "
+style  = "bold #fab387"

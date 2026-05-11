@@ -1,0 +1,33 @@
+*.swp
+*.bak
+*~
+.DS_Store
+Thumbs.db
+
+# Stow internals
+.stow-local-ignore
+
+# Secrets / runtime
+**/.ssh/id_*
+**/.ssh/known_hosts
+**/.claude/credentials.json
+**/.claude/projects/
+**/.claude/history/
+**/.claude/sessions/
+**/.local/state/
+*.log
+
+# Editor caches
+.idea/
+.vscode/
+
+# Estado del instalador
+.install.state
+
+# Wallpapers descargados (vienen por submodule/script)
+wallpapers/aesthetic/
+
+# Bases de datos / runtime de MCP tools
+*.db
+*.sqlite
+*.sqlite3

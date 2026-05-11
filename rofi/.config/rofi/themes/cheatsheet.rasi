@@ -1,0 +1,63 @@
+/* Cheatsheet — lista ancha, monospace, scroll */
+* {
+    bg:        #1e1e2e;
+    bg-alt:    #313244;
+    fg:        #cdd6f4;
+    fg-alt:    #a6adc8;
+    accent:    #89b4fa;
+    background-color: transparent;
+    text-color: @fg;
+    font: "JetBrainsMono Nerd Font 11";
+}
+
+window {
+    width: 850px;
+    border-radius: 14px;
+    background-color: @bg;
+    border: 2px solid @accent;
+    padding: 18px;
+}
+
+mainbox { children: [inputbar, message, listview]; spacing: 10px; }
+
+inputbar {
+    background-color: @bg-alt;
+    border-radius: 10px;
+    padding: 10px 14px;
+    children: [prompt, entry];
+}
+prompt {
+    str: "  ";
+    text-color: @accent;
+}
+entry { placeholder: "Filtra atajos…"; placeholder-color: @fg-alt; }
+
+message {
+    background-color: @bg-alt;
+    border-radius: 8px;
+    padding: 4px 12px;
+    text-color: @fg-alt;
+}
+
+listview {
+    lines: 16;
+    columns: 1;
+    spacing: 1px;
+    scrollbar: true;
+    fixed-height: true;
+}
+
+scrollbar {
+    handle-color: @accent;
+    handle-width: 6px;
+}
+
+element {
+    padding: 4px 12px;
+    border-radius: 6px;
+}
+element selected {
+    background-color: @accent;
+    text-color: @bg;
+}
+element-text { text-color: inherit; }

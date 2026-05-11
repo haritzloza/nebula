@@ -1,0 +1,82 @@
+# Base — siempre se instala
+# Hyprland + ecosistema Wayland
+hyprland
+hyprlock
+hypridle
+hyprpicker
+hyprsunset
+xdg-desktop-portal-hyprland
+qt5-wayland
+qt6-wayland
+polkit-kde-agent
+
+# Barra, launcher, notificaciones
+waybar
+rofi-wayland
+swaync
+wl-clipboard
+cliphist
+grim
+slurp
+swappy
+
+# Terminal + shell
+kitty
+zsh
+starship
+fzf
+ripgrep
+fd
+bat
+eza
+zoxide
+glow
+jq
+
+# Editor base
+git
+git-delta
+unzip
+wget
+curl
+
+# Audio / Bluetooth / Red
+pipewire
+pipewire-pulse
+pipewire-alsa
+wireplumber
+pavucontrol
+bluez
+bluez-utils
+blueman
+networkmanager
+network-manager-applet
+
+# Fuentes / iconos
+ttf-jetbrains-mono-nerd
+ttf-firacode-nerd
+noto-fonts
+noto-fonts-emoji
+noto-fonts-cjk
+papirus-icon-theme
+
+# Stow + utilidades
+stow
+sudo
+which
+man-db
+man-pages
+htop
+btop
+nvtop
+libnewt
+
+# Media + brillo (atajos XF86*)
+playerctl
+brightnessctl
+
+# File manager TUI (SUPER+E)
+yazi
+
+# Terminal aesthetics
+fastfetch

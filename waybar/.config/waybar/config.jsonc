@@ -1,0 +1,114 @@
+{
+    "layer": "top",
+    "position": "top",
+    "height": 36,
+    "margin-top": 6,
+    "margin-left": 10,
+    "margin-right": 10,
+    "spacing": 6,
+    "reload_style_on_change": true,
+
+    "modules-left":   ["custom/launcher", "hyprland/workspaces", "hyprland/window"],
+    "modules-center": ["clock"],
+    "modules-right":  ["custom/claude", "tray", "cpu", "memory", "custom/gpu", "pulseaudio", "network", "bluetooth", "battery", "custom/notifications", "custom/power"],
+
+    "custom/launcher": {
+        "format": "",
+        "tooltip": false,
+        "on-click": "rofi -show drun -theme ~/.config/rofi/themes/launcher.rasi"
+    },
+
+    "hyprland/workspaces": {
+        "format": "{icon}",
+        "on-click": "activate",
+        "all-outputs": true,
+        "sort-by-number": true,
+        "format-icons": {
+            "1": "1", "2": "2", "3": "3", "4": "4", "5": "5",
+            "6": "6", "7": "", "8": "", "9": "9", "10": "10",
+            "active": "",
+            "default": ""
+        }
+    },
+
+    "hyprland/window": {
+        "format": "{}",
+        "max-length": 60,
+        "separate-outputs": true
+    },
+
+    "clock": {
+        "format": "  {:%H:%M}",
+        "format-alt": "  {:%a %d %b %Y}",
+        "tooltip-format": "<tt><small>{calendar}</small></tt>",
+        "calendar": {
+            "mode": "year",
+            "weeks-pos": "right",
+            "format": { "today": "<span color='#cba6f7'><b>{}</b></span>" }
+        }
+    },
+
+    "custom/claude": {
+        "format": "{}",
+        "return-type": "json",
+        "exec": "~/.config/waybar/scripts/claude-status.sh",
+        "interval": 5,
+        "on-click": "~/.config/hypr/scripts/claude-popup.sh",
+        "on-click-right": "kitty --class kitty-claude -e claude",
+        "tooltip": true
+    },
+
+    "tray": { "icon-size": 16, "spacing": 8 },
+
+    "cpu":    { "format": "  {usage}%", "interval": 3, "on-click": "kitty -e btop" },
+    "memory": { "format": "  {percentage}%", "interval": 5 },
+
+    "custom/gpu": {
+        "format": "󰢮 {}",
+        "exec": "command -v nvtop >/dev/null && nvtop -s 2>/dev/null | head -n1 || echo 'n/a'",
+        "interval": 10,
+        "tooltip": false
+    },
+
+    "pulseaudio": {
+        "format": "{icon} {volume}%",
+        "format-bluetooth": "{icon}  {volume}%",
+        "format-muted": "  muted",
+        "format-icons": { "default": ["", "", ""] },
+        "on-click": "pavucontrol",
+        "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+    },
+
+    "network": {
+        "format-wifi": "  {essid}",
+        "format-ethernet": "  {ifname}",
+        "format-disconnected": "󰖪 off",
+        "tooltip-format": "{ifname}: {ipaddr}",
+        "on-click": "kitty -e nmtui"
+    },
+
+    "bluetooth": {
+        "format": " {status}",
+        "format-connected": " {device_alias}",
+        "on-click": "blueman-manager"
+    },
+
+    "battery": {
+        "states": { "warning": 30, "critical": 15 },
+        "format": "{icon} {capacity}%",
+        "format-charging": " {capacity}%",
+        "format-icons": ["", "", "", "", ""]
+    },
+
+    "custom/notifications": {
+        "format": "",
+        "on-click": "swaync-client -t",
+        "tooltip": false
+    },
+
+    "custom/power": {
+        "format": "",
+        "on-click": "wlogout",
+        "tooltip": false
+    }
+}

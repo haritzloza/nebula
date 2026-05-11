@@ -1,0 +1,12 @@
+# hyprshade — schedule de filtros de pantalla
+# Aplicación automática por hora. Toggle manual con SUPER+SHIFT+S.
+
+[[shades]]
+name = "blue-light-filter"
+start_time = 19:00:00
+end_time = 06:00:00
+
+# Opcional: filtro daltonismo (deutan/protan/tritan) — descomenta si lo necesitas
+# [[shades]]
+# name = "vibrance"
+# default = true

@@ -1,0 +1,13 @@
+# Permite a wheel cierto NOPASSWD acotado + timeout más largo de sesión sudo
+# Instalar en /etc/sudoers.d/wheel-nopasswd-timeout (modo 0440)
+
+Defaults  env_reset
+Defaults  timestamp_timeout=30
+Defaults  passwd_timeout=2
+Defaults  insults
+
+# wheel mantiene contraseña para todo por defecto
+%wheel    ALL=(ALL:ALL) ALL
+
+# Comandos comunes de mantenimiento sin password (ajusta a gusto)
+# %wheel ALL=(root) NOPASSWD: /usr/bin/pacman -Syu, /usr/bin/paru -Syu, /usr/bin/systemctl restart NetworkManager

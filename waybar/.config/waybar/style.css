@@ -1,0 +1,120 @@
+/* Waybar — tema moderno (Catppuccin-Mocha + glass) */
+/* Colores dinámicos generados por matugen (si theming dinámico activo).
+   El stub vacío se crea en install.sh para que este @import no falle. */
+@import url("colors.css");
+
+
+* {
+    font-family: "JetBrainsMono Nerd Font", "Symbols Nerd Font", sans-serif;
+    font-size: 13px;
+    min-height: 0;
+}
+
+window#waybar {
+    background: rgba(30, 30, 46, 0.78);
+    color: #cdd6f4;
+    border-radius: 14px;
+    border: 1px solid rgba(205, 214, 244, 0.08);
+    transition: background-color 0.4s ease;
+}
+
+window#waybar.hidden { opacity: 0.2; }
+
+tooltip {
+    background: rgba(24, 24, 37, 0.96);
+    border: 1px solid #cba6f7;
+    border-radius: 10px;
+}
+
+tooltip label { color: #cdd6f4; padding: 4px 8px; }
+
+/* Módulos genéricos */
+#workspaces,
+#window,
+#clock,
+#custom-claude,
+#tray,
+#cpu,
+#memory,
+#custom-gpu,
+#pulseaudio,
+#network,
+#bluetooth,
+#battery,
+#custom-notifications,
+#custom-power,
+#custom-launcher {
+    padding: 2px 10px;
+    margin: 4px 2px;
+    border-radius: 10px;
+    background: rgba(49, 50, 68, 0.6);
+}
+
+/* Launcher */
+#custom-launcher {
+    background: linear-gradient(135deg, #89b4fa, #cba6f7);
+    color: #1e1e2e;
+    font-size: 18px;
+    padding: 0 12px;
+    margin-left: 6px;
+}
+
+/* Workspaces */
+#workspaces button {
+    padding: 2px 8px;
+    color: #6c7086;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+#workspaces button.active {
+    background: linear-gradient(135deg, #89b4fa, #cba6f7);
+    color: #1e1e2e;
+}
+#workspaces button:hover { background: rgba(137, 180, 250, 0.2); color: #cdd6f4; }
+
+/* Window title */
+#window { color: #a6adc8; font-style: italic; }
+
+/* Clock acentuado */
+#clock {
+    color: #f5c2e7;
+    font-weight: bold;
+}
+
+/* Claude — gradiente con animación cuando trabaja */
+#custom-claude {
+    color: #cba6f7;
+    font-size: 16px;
+    padding: 0 12px;
+    background: rgba(203, 166, 247, 0.12);
+    border: 1px solid rgba(203, 166, 247, 0.35);
+}
+#custom-claude.working {
+    background: linear-gradient(135deg, #f9e2af, #fab387);
+    color: #1e1e2e;
+    animation: claude-pulse 1.2s ease-in-out infinite;
+}
+@keyframes claude-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(249, 226, 175, 0.5); }
+    50%  { box-shadow: 0 0 0 6px rgba(249, 226, 175, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(249, 226, 175, 0); }
+}
+
+/* Estados batería */
+#battery.warning  { color: #f9e2af; }
+#battery.critical { color: #f38ba8; animation: blink 1s steps(2) infinite; }
+@keyframes blink { to { opacity: 0.3; } }
+
+/* Iconos colores */
+#cpu        { color: #94e2d5; }
+#memory     { color: #b4befe; }
+#custom-gpu { color: #a6e3a1; }
+#pulseaudio { color: #f5e0dc; }
+#network    { color: #89b4fa; }
+#bluetooth  { color: #74c7ec; }
+
+#custom-notifications { color: #f9e2af; }
+#custom-power         { color: #f38ba8; padding: 0 12px; }
+
+#tray > .passive   { -gtk-icon-effect: dim; }
+#tray > .needs-attention { -gtk-icon-effect: highlight; }

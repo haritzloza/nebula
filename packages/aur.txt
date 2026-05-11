@@ -1,0 +1,12 @@
+# AUR — base (siempre que aceptes ejecutar AUR helper)
+claude-code
+hyprshot
+wlogout
+hyprshade
+
+# Terminal aesthetics (Pokémon en cada terminal nueva)
+pokemon-colorscripts-git
+
+# Sysadmin
+k9s-bin
+lazydocker

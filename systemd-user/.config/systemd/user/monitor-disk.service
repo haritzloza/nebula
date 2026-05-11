@@ -1,0 +1,6 @@
+[Unit]
+Description=Disk monitor (notify when partitions >85% full)
+
+[Service]
+Type=oneshot
+ExecStart=%h/.config/scripts/monitor-disk.sh

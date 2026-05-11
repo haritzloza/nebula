@@ -1,0 +1,17 @@
+configuration {
+    modi: "drun,run,window,filebrowser";
+    show-icons: true;
+    icon-theme: "Papirus-Dark";
+    font: "JetBrainsMono Nerd Font 12";
+    display-drun: "Apps";
+    display-run: "Run";
+    display-window: "Windows";
+    drun-display-format: "{name}";
+    disable-history: false;
+    sort: true;
+    sorting-method: "fzf";
+    matching: "fuzzy";
+    terminal: "kitty";
+}
+
+@theme "themes/launcher.rasi"

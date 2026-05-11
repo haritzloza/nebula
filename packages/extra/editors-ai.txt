@@ -1,0 +1,6 @@
+# Editores AI premium — AUR
+# IMPORTANTE: usar cursor-ide-bin (NO cursor-bin, ese está roto por auto-update)
+visual-studio-code-bin
+cursor-ide-bin
+zed
+claude-desktop-bin

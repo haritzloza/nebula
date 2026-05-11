@@ -1,0 +1,4 @@
+[submodule "wallpapers/aesthetic"]
+	path = wallpapers/aesthetic
+	url = https://github.com/D3Ext/aesthetic-wallpapers.git
+	shallow = true

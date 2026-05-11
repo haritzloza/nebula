@@ -1,0 +1,14 @@
+# Dev stack — sólo si flag dev_extra=1
+neovim
+tmux
+lazygit
+github-cli
+docker
+docker-compose
+nodejs
+npm
+python
+python-pip
+python-pipx
+go
+rustup

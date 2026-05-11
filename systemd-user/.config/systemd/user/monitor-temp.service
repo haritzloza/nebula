@@ -1,0 +1,6 @@
+[Unit]
+Description=Temperature monitor (notify on overheat)
+
+[Service]
+Type=oneshot
+ExecStart=%h/.config/scripts/monitor-temp.sh

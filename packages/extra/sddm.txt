@@ -1,0 +1,2 @@
+# SDDM Astronaut theme
+sddm-theme-astronaut

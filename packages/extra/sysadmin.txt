@@ -1,0 +1,11 @@
+# Sysadmin tools
+openssh
+sshfs
+rsync
+nmap
+tcpdump
+ufw
+lsof
+strace
+ncdu
+ranger

@@ -1,0 +1,20 @@
+{
+    "mcpServers": {
+        "filesystem": {
+            "command": "npx",
+            "args": ["-y", "@modelcontextprotocol/server-filesystem", "/home/haritz"],
+            "env": {}
+        },
+        "github": {
+            "command": "npx",
+            "args": ["-y", "@modelcontextprotocol/server-github"],
+            "env": {
+                "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN:-}"
+            }
+        },
+        "git": {
+            "command": "uvx",
+            "args": ["mcp-server-git"]
+        }
+    }
+}

@@ -1,0 +1,60 @@
+/* Tema específico para el popup Claude — input grande, history visible */
+* {
+    bg:        #1e1e2e;
+    bg-alt:    #313244;
+    fg:        #cdd6f4;
+    fg-alt:    #a6adc8;
+    accent:    #fab387;   /* naranja/melocoton para distinguir de launcher */
+    background-color: transparent;
+    text-color: @fg;
+    font: "JetBrainsMono Nerd Font 13";
+}
+
+window {
+    width: 720px;
+    border-radius: 16px;
+    background-color: @bg;
+    border: 2px solid @accent;
+    padding: 22px;
+}
+
+mainbox { children: [inputbar, message, listview]; spacing: 12px; }
+
+inputbar {
+    background-color: @bg-alt;
+    border-radius: 10px;
+    padding: 14px 16px;
+    children: [prompt, entry];
+    spacing: 12px;
+}
+
+prompt {
+    text-color: @accent;
+    str: "  ";
+}
+entry {
+    placeholder: "Pregunta a Claude…";
+    placeholder-color: @fg-alt;
+    font: "JetBrainsMono Nerd Font 14";
+}
+
+message {
+    background-color: @bg-alt;
+    border-radius: 8px;
+    padding: 6px 12px;
+}
+textbox {
+    text-color: @fg-alt;
+    str: "Enter envía · Esc cancela · ↑↓ histórico";
+}
+
+listview {
+    lines: 6;
+    columns: 1;
+    spacing: 2px;
+    scrollbar: false;
+}
+
+element { padding: 6px 12px; border-radius: 6px; }
+element selected { background-color: @accent; text-color: @bg; }
+element-text { text-color: inherit; }

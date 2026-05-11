@@ -1,0 +1,4 @@
+# AUR gaming
+proton-ge-custom-bin
+protonup-qt
+heroic-games-launcher-bin
