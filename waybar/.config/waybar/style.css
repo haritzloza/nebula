@@ -33,6 +33,7 @@ tooltip label { color: #cdd6f4; padding: 4px 8px; }
 #window,
 #clock,
 #custom-claude,
+#custom-jarvis,
 #tray,
 #cpu,
 #memory,
@@ -98,6 +99,47 @@ tooltip label { color: #cdd6f4; padding: 4px 8px; }
     0%   { box-shadow: 0 0 0 0 rgba(249, 226, 175, 0.5); }
     50%  { box-shadow: 0 0 0 6px rgba(249, 226, 175, 0); }
     100% { box-shadow: 0 0 0 0 rgba(249, 226, 175, 0); }
+}
+
+/* Jarvis — color por estado, pulso cuando habla */
+#custom-jarvis {
+    color: #94e2d5;
+    font-size: 16px;
+    padding: 0 12px;
+    background: rgba(148, 226, 213, 0.10);
+    border: 1px solid rgba(148, 226, 213, 0.30);
+}
+#custom-jarvis.off {
+    color: #6c7086;
+    background: rgba(108, 112, 134, 0.08);
+    border-color: rgba(108, 112, 134, 0.25);
+}
+#custom-jarvis.muted {
+    color: #f38ba8;
+    background: rgba(243, 139, 168, 0.10);
+    border-color: rgba(243, 139, 168, 0.30);
+}
+#custom-jarvis.listening {
+    color: #1e1e2e;
+    background: #a6e3a1;
+    border-color: #a6e3a1;
+    animation: jarvis-pulse 0.9s ease-in-out infinite;
+}
+#custom-jarvis.thinking {
+    color: #1e1e2e;
+    background: #cba6f7;
+    border-color: #cba6f7;
+}
+#custom-jarvis.speaking {
+    color: #1e1e2e;
+    background: #fab387;
+    border-color: #fab387;
+    animation: jarvis-pulse 0.6s ease-in-out infinite;
+}
+@keyframes jarvis-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(148, 226, 213, 0.5); }
+    50%  { box-shadow: 0 0 0 6px rgba(148, 226, 213, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(148, 226, 213, 0); }
 }
 
 /* Estados batería */

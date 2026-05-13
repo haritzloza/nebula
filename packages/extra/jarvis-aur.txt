@@ -1,0 +1,17 @@
+# Jarvis — paquetes AUR
+# Algunos compilan (quickshell-git, ~5 min en Qt6); paciencia en primer install.
+
+# UI overlay QML
+quickshell-git
+
+# Wake word "Hey Jarvis"
+python-openwakeword
+
+# STT
+python-faster-whisper
+
+# TTS
+piper-tts-bin
+
+# Vector store local sin servidor
+python-sqlite-vec

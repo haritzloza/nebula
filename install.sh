@@ -15,7 +15,7 @@ DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROFILE_DIR="$DOTFILES_DIR/packages/profiles"
 STATE_FILE="$DOTFILES_DIR/.install.state"
 
-ALL_STOW_PACKAGES=(hypr waybar rofi kitty nvim tmux zsh starship swaync claude ssh wlogout fastfetch hyprpaper matugen systemd-user git gtk bat)
+ALL_STOW_PACKAGES=(hypr waybar rofi kitty nvim tmux zsh starship swaync claude ssh wlogout fastfetch hyprpaper matugen systemd-user git gtk bat jarvis)
 DEFAULT_STOW=(hypr waybar rofi kitty zsh starship swaync claude wlogout fastfetch git gtk bat)
 
 DRYRUN=0
@@ -85,6 +85,7 @@ declare -A FLAGS=(
     [wallpapers]=0
     [sddm]=0
     [monitors]=0
+    [jarvis]=0
 )
 
 declare -a SELECTED_STOW=()
@@ -130,6 +131,7 @@ menu_custom() {
             "sddm"          "SDDM Astronaut theme (login bonito)"            OFF \
             "monitors"      "Monitors systemd-user (battery/temp/disk)"      OFF \
             "hardening"     "Hardening (UFW, sshd, sudoers)"                 OFF \
+            "jarvis"        "Asistente IA local por voz (Ollama+Whisper+Piper, ~10GB)" OFF \
         3>&1 1>&2 2>&3) || exit 0
 
     # Limpiar selección
@@ -202,6 +204,12 @@ build_install_set() {
         SELECTED_STOW+=(systemd-user)
         PACMAN_FILES+=("$DOTFILES_DIR/packages/extra/monitors.txt")
     fi
+
+    if [[ ${FLAGS[jarvis]} == 1 ]]; then
+        PACMAN_FILES+=("$DOTFILES_DIR/packages/extra/jarvis.txt")
+        AUR_FILES+=("$DOTFILES_DIR/packages/extra/jarvis-aur.txt")
+        SELECTED_STOW+=(jarvis)
+    fi
 }
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -247,6 +255,7 @@ ensure_exec_bits() {
     chmod +x "$DOTFILES_DIR"/security/*.sh                         2>/dev/null || true
     chmod +x "$DOTFILES_DIR"/scripts/*.sh                          2>/dev/null || true
     chmod +x "$DOTFILES_DIR"/systemd-user/.config/scripts/*.sh     2>/dev/null || true
+    chmod +x "$DOTFILES_DIR"/jarvis/.local/bin/jarvisctl            2>/dev/null || true
     chmod +x "$DOTFILES_DIR"/install.sh
 }
 
@@ -416,12 +425,20 @@ $(printf '\033[1;32m')╔══════════════════�
     SUPER + RET          Terminal
     SUPER + C            Claude popup
     SUPER + SHIFT + C    Claude scratchpad
-    SUPER + SHIFT + K    Keybind cheatsheet  ← NUEVO
+    SUPER + ALT + J      Jarvis mute/unmute (si flag jarvis)
+    SUPER + ALT + SHIFT+J Jarvis push-to-talk (si flag jarvis)
+    SUPER + SHIFT + K    Keybind cheatsheet
     SUPER + W            Cambiar wallpaper
     SUPER + G            Gamemode visual toggle
 
-  Logs: ~/.local/state/claude-popup/popup.log
+  Logs: ~/.local/state/claude-popup/popup.log  · ~/.local/state/jarvis/session.log
   Re-stow: cd $DOTFILES_DIR && stow -R ${SELECTED_STOW[*]}
+
+  Jarvis primer arranque (si lo instalaste):
+    ollama pull qwen3:14b
+    ollama pull nomic-embed-text
+    jarvisctl fetch-voice            # descarga voz Piper es_ES-davefx-medium
+    systemctl --user start jarvis    # arranca el daemon (no enabled)
 
 EOF
 }

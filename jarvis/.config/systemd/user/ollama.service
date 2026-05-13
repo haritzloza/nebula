@@ -1,0 +1,19 @@
+[Unit]
+Description=Ollama (local LLM server, user-mode, RDNA4)
+Documentation=https://github.com/ollama/ollama
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/ollama serve
+Environment=OLLAMA_HOST=127.0.0.1:11434
+Environment=OLLAMA_KEEP_ALIVE=15m
+Environment=OLLAMA_FLASH_ATTENTION=0
+Environment=OLLAMA_NUM_PARALLEL=1
+Restart=on-failure
+RestartSec=3
+# No enabled — el daemon de Jarvis lo arranca on-demand
+# Evita el bug de CachyOS https://github.com/CachyOS/linux-cachyos/issues/637
+
+[Install]
+WantedBy=default.target

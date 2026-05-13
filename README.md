@@ -43,6 +43,7 @@
 - [Profiles](#profiles)
 - [Keybindings](#keybindings)
 - [The Claude widget](#the-claude-widget)
+- [Jarvis — local voice assistant](#jarvis--local-voice-assistant)
 - [Dynamic theming](#dynamic-theming)
 - [Project structure](#project-structure)
 - [Customization](#customization)
@@ -200,6 +201,9 @@ Optional layers (selectable in `custom` mode):
 | `SUPER + C` | **Claude quick popup** |
 | `SUPER + SHIFT + C` | Claude interactive scratchpad |
 | `SUPER + F1` | Toggle special workspace for Claude |
+| Decir `Hey Jarvis` | **Asistente local por voz** (si `jarvis` flag) |
+| `SUPER + ALT + J` | Mute / unmute Jarvis wake word |
+| `SUPER + ALT + SHIFT + J` | Jarvis push-to-talk |
 | `SUPER + W` | Next wallpaper (regenerates palette if matugen is on) |
 | `SUPER + G` | Gamemode visual toggle (kills blur/anims for max FPS) |
 | `SUPER + SHIFT + S` | Cycle screen shader (off → blue-light → vibrance → grayscale) |
@@ -235,6 +239,89 @@ flowchart TD
 - Concurrent invocations are locked
 - Waybar shows an idle / working indicator (pulses while Claude thinks)
 - Global Claude Code settings, MCP servers and `CLAUDE.md` are versioned under [`claude/`](claude/.claude/)
+
+## Jarvis — local voice assistant
+
+Opt-in feature (`jarvis` flag) that adds a 100% local voice assistant — wake word, STT, LLM with tool-calling, TTS and a Quickshell HUD overlay. Designed for AMD GPUs (tested with RX 9070 XT / RDNA4).
+
+```mermaid
+flowchart LR
+    A[mic] --> B[openWakeWord<br/>'hey jarvis']
+    B --> C[faster-whisper<br/>medium-ES, CPU]
+    C --> D[Ollama qwen3:14b<br/>+ tools]
+    D --> E[Piper TTS<br/>es_ES-davefx]
+    E --> F[pw-cat]
+    D -->|tool calls| G[hyprctl · wpctl<br/>brightnessctl · SearXNG<br/>memory.db]
+    D --> H[Quickshell HUD<br/>orb + waveform]
+    classDef hl fill:#94e2d5,stroke:#1e1e2e,color:#1e1e2e,font-weight:bold;
+    classDef act fill:#313244,stroke:#94e2d5,color:#cdd6f4;
+    class A,H hl;
+    class B,C,D,E,F,G act;
+```
+
+**Requirements** (beyond the base profile)
+- Kernel ≥ 6.13 with `linux-firmware-amdgpu` for RDNA4 (CachyOS recent kernels include it).
+- ~10 GB free disk for the main model + voice + Whisper weights.
+- ~12 GB free VRAM during inference (Qwen3-14B Q5_K_M + Hyprland headroom).
+- Pipewire (already in the base profile).
+
+**First-time setup** (after `./install.sh` with `jarvis` flag ON)
+
+```bash
+# 1) Modelos LLM (descarga única, ~6.5 GB + 274 MB)
+ollama pull qwen3:14b
+ollama pull nomic-embed-text
+
+# 2) Voz Piper (descarga única, ~60 MB)
+jarvisctl fetch-voice
+
+# 3) Genera secret de SearXNG (la búsqueda web)
+sed -i "s/CAMBIAR_TRAS_INSTALL_jarvisctl_regen_searxng_key/$(openssl rand -hex 32)/" \
+    ~/.config/jarvis/searxng/settings.yml
+
+# 4) Arranca el daemon (no auto-enabled para evitar bug de CachyOS)
+systemctl --user start jarvis.service
+```
+
+**Atajos**
+
+| Combinación | Acción |
+|---|---|
+| Decir `Hey Jarvis` | Activa la escucha (wake word) |
+| `SUPER + ALT + J` | Mute / unmute del wake word |
+| `SUPER + ALT + SHIFT + J` | Push-to-talk (forzar una sesión) |
+
+**Capacidades**
+
+- Conversación general en castellano con memoria de la sesión.
+- Memoria persistente entre reinicios (`memory_store` / `memory_recall`).
+- Control del sistema: volumen, brillo, workspaces, fullscreen / floating, abrir apps (allowlist).
+- Búsqueda web vía SearXNG local (Docker, levantado on-demand).
+
+**Seguridad**
+
+- Las herramientas pasan por allowlist y validación pydantic (no `shell=True`, sin paths arbitrarios).
+- Cada tool-call se loguea a `~/.local/state/jarvis/audit.log`.
+- El daemon corre como `systemd --user`, no como root.
+
+**Diagnóstico**
+
+```bash
+jarvisctl status
+jarvisctl tail-session   # logs del daemon
+jarvisctl tail-audit     # logs de tool-calls
+jarvisctl ask "prueba"   # bypass voz, útil headless
+journalctl --user -u jarvis.service -f
+```
+
+**Rollback**
+
+```bash
+systemctl --user disable --now jarvis.service jarvis-searxng.service
+cd ~/path/to/dotfiles && stow -D jarvis
+sudo pacman -Rns ollama-rocm
+paru -Rns quickshell-git python-openwakeword python-faster-whisper piper-tts-bin python-sqlite-vec
+```
 
 ## Dynamic theming
 
