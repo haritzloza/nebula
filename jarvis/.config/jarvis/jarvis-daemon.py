@@ -89,11 +89,13 @@ class State:
 # Bus de estado (socket UNIX line-delimited JSON)
 # ──────────────────────────────────────────────────────────────────────────
 class StateBus:
-    def __init__(self, socket_path: Path) -> None:
+    def __init__(self, socket_path: Path, ui_config: dict[str, Any] | None = None) -> None:
         self.socket_path = socket_path
         self.clients: set[asyncio.StreamWriter] = set()
         self.state = State()
         self._lock = asyncio.Lock()
+        # Config UI que se envía al conectar un cliente Quickshell (theme, etc.)
+        self.ui_config = ui_config or {}
 
     async def serve(self) -> None:
         self.socket_path.parent.mkdir(parents=True, exist_ok=True)
@@ -107,8 +109,9 @@ class StateBus:
     async def _on_client(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
         self.clients.add(writer)
         try:
-            # Snapshot inicial
-            await self._send(writer, self.state.snapshot())
+            # Snapshot inicial: estado + config para que la UI sepa el tema
+            initial = {**self.state.snapshot(), "config": self.ui_config}
+            await self._send(writer, initial)
             # Mantener vivo hasta EOF; no leemos nada del cliente
             while not reader.at_eof():
                 await reader.read(1024)
@@ -476,7 +479,11 @@ async def amain(config_path: Path) -> int:
 
     socket_path = _expand(cfg["ui"]["socket"])
     control_path = socket_path.with_name("jarvis-ctl.sock")
-    bus = StateBus(socket_path)
+    ui_cfg = {
+        "theme": cfg["ui"].get("theme", "minimal"),
+        "always_visible": bool(cfg["ui"].get("always_visible", False)),
+    }
+    bus = StateBus(socket_path, ui_config=ui_cfg)
     ctl = ControlChannel(control_path)
 
     audio = AudioCapture(cfg["capture"]["sample_rate"], cfg["capture"]["frame_size"])

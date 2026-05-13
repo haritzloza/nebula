@@ -76,6 +76,17 @@ max_utterance_s = 15.0
 socket = "$XDG_RUNTIME_DIR/jarvis.sock"
 # Idle, listening, thinking, speaking, muted, error
 log_state_changes = true
+# Tema del HUD Quickshell:
+#   "minimal" → card abajo-centro con orb pequeño + waveform + transcripción
+#               semafórica por estado (idle=cyan, listening=verde, etc.). Ligero.
+#   "stark"   → overlay fullscreen, orb azul Stark grande centrado en pantalla,
+#               anillos rotatorios contra-sentido, tick marks, líneas de scan,
+#               estética HUD de Iron Man. ~3 W extra GPU solo durante interacción.
+theme = "minimal"
+# Si true, el HUD se queda visible incluso en idle (modo "ambient orb").
+# OJO: en modo stark, esto mantiene los shaders activos 24/7 (~3-5 W continuo).
+# En modo minimal el coste es despreciable.
+always_visible = false
 
 [paths]
 state_dir = "~/.local/state/jarvis"

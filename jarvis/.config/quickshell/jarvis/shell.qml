@@ -1,22 +1,23 @@
 // shell.qml — entry point del HUD de Jarvis.
 //
-// Layer-shell overlay anclado bottom-center.
-// pass-through input (no roba clicks).
-// Lee estado por socket UNIX line-JSON desde el daemon.
+// Lee estado y config del socket UNIX (line-JSON) emitido por jarvis-daemon.
+// Según `config.theme` ("minimal" o "stark") muestra un PanelWindow u otro:
 //
-// Arrancar:
-//     qs -c jarvis
+//   minimal → MinimalHud.qml: card abajo-centro con orb pequeño y texto inline.
+//   stark   → StarkHud.qml:   overlay fullscreen, orb azul Stark grande centrado.
+//
+// Solo uno de los dos está visible a la vez. La elección se hace por
+// `WindowLifecycle`: si no es el tema activo, el window queda invisible y
+// sin coste de render.
 
 import QtQuick
-import QtQuick.Layouts
 import Quickshell
-import Quickshell.Wayland
 import Quickshell.Io
 
 ShellRoot {
     id: root
 
-    // Estado global reactivo
+    // Estado reactivo recibido del daemon
     property string state: "idle"
     property real rms: 0.0
     property string transcript: ""
@@ -24,20 +25,18 @@ ShellRoot {
     property bool muted: false
     property string lastError: ""
 
-    function isActive(): bool {
-        return root.state === "listening" || root.state === "thinking" || root.state === "speaking";
-    }
+    // Config recibida en el snapshot inicial del socket
+    property string theme: "minimal"
+    property bool alwaysVisible: false
 
     // ─── Socket UNIX → estado ─────────────────────────────────────
     Socket {
         id: sock
         path: Qt.resolvedUrl(Quickshell.env("XDG_RUNTIME_DIR") + "/jarvis.sock")
         connected: true
-        property string buffer: ""
 
         onConnectionStateChanged: {
             if (connectionState === Socket.Disconnected) {
-                // Reintenta en 2 s
                 reconnectTimer.start();
             }
         }
@@ -58,6 +57,10 @@ ShellRoot {
     function _onLine(line: string): void {
         try {
             const j = JSON.parse(line);
+            if (j.config) {
+                if (j.config.theme) root.theme = j.config.theme;
+                if (j.config.always_visible !== undefined) root.alwaysVisible = j.config.always_visible;
+            }
             if (j.state !== undefined) root.state = j.state;
             if (j.rms !== undefined) root.rms = j.rms;
             if (j.transcript !== undefined) root.transcript = j.transcript;
@@ -69,74 +72,30 @@ ShellRoot {
         }
     }
 
-    // ─── Overlay ─────────────────────────────────────────────────
-    PanelWindow {
-        id: hud
-        anchors {
-            bottom: true
+    // ─── HUD minimal (card abajo-centro) ─────────────────────────
+    Loader {
+        active: root.theme === "minimal"
+        sourceComponent: MinimalHud {
+            state: root.state
+            rms: root.rms
+            transcript: root.transcript
+            response: root.response
+            muted: root.muted
+            lastError: root.lastError
+            alwaysVisible: root.alwaysVisible
         }
-        margins.bottom: 60
-        exclusiveZone: 0
-        // Pass-through al input cuando no es interactivo:
-        WlrLayershell.keyboardFocus: WlrLayershell.None
-        WlrLayershell.layer: WlrLayershell.Overlay
-        WlrLayershell.exclusiveZone: 0
+    }
 
-        color: "transparent"
-        implicitWidth: 520
-        implicitHeight: 180
-
-        // Sólo visible si hay actividad o el panel ha sido recientemente activo
-        visible: root.isActive() || root.muted || root.lastError !== ""
-
-        Rectangle {
-            id: card
-            anchors.fill: parent
-            anchors.margins: 8
-            radius: 24
-            color: "#cc101218"
-            border.color: root.muted ? "#aa5b5b" : "#6cf"
-            border.width: 1
-            opacity: root.isActive() ? 1.0 : 0.65
-
-            Behavior on opacity { NumberAnimation { duration: 200 } }
-
-            RowLayout {
-                anchors.fill: parent
-                anchors.margins: 16
-                spacing: 16
-
-                // Orb central
-                Orb {
-                    id: orb
-                    Layout.preferredWidth: 120
-                    Layout.preferredHeight: 120
-                    state: root.state
-                    rms: root.rms
-                }
-
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 6
-
-                    // Waveform
-                    Waveform {
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 36
-                        active: root.state === "listening"
-                        rms: root.rms
-                    }
-
-                    // Transcript / respuesta
-                    Transcript {
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        transcript: root.transcript
-                        response: root.response
-                        state: root.state
-                    }
-                }
-            }
+    // ─── HUD stark (fullscreen overlay) ──────────────────────────
+    Loader {
+        active: root.theme === "stark"
+        sourceComponent: StarkHud {
+            state: root.state
+            rms: root.rms
+            transcript: root.transcript
+            response: root.response
+            muted: root.muted
+            alwaysVisible: root.alwaysVisible
         }
     }
 }

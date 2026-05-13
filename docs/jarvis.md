@@ -42,7 +42,11 @@ flowchart LR
 - **STT** en castellano con faster-whisper `medium` en CPU (latencia <1 s para frases cortas).
 - **LLM con tool-calling**: Qwen3-14B Q5_K_M en Ollama (ROCm). 10 GB VRAM aprox.
 - **TTS** Piper voz `es_ES-davefx-medium`, neutra-profesional, RTF ~0.05.
-- **UI**: HUD overlay Quickshell (orb pulsante + waveform + transcripción) anclado abajo-centro, *pass-through* al input (no roba clicks). Indicador adicional en Waybar.
+- **UI**: HUD overlay Quickshell en dos temas seleccionables (`[ui].theme`):
+  - **`minimal`** (default): card abajo-centro con orb pequeño + waveform + transcripción inline. Ligero.
+  - **`stark`**: overlay fullscreen, orb azul Stark grande **centrado en pantalla**, anillos rotatorios contra-sentido, tick marks, líneas de scan, tipografía HUD. Estética HUD de Iron Man.
+
+  Ambos son *pass-through* al input (no roban clicks) y se ocultan en idle. Indicador adicional en Waybar siempre presente.
 - **Memoria persistente** entre sesiones (SQLite + sqlite-vec + embeddings `nomic-embed-text`).
 - **Búsqueda web** local-friendly vía SearXNG en Docker (levantado on-demand).
 
@@ -302,6 +306,31 @@ Otras voces ES disponibles (descárgalas a `~/.local/share/piper/voices/` desde 
 
 - `es_ES-sharvard-medium` (femenina, neutra)
 - `es_ES-mls_9972-low` (muy ligera, calidad menor)
+
+### `[ui]` — tema del HUD
+
+Hay dos modos visuales mutuamente excluyentes:
+
+```toml
+[ui]
+theme = "minimal"          # o "stark"
+always_visible = false     # true = HUD visible incluso en idle (modo ambient)
+```
+
+**`minimal`** (default): card abajo-centro de ~520×180 px con orb pequeño, waveform y transcripción en horizontal. Color del orb cambia por estado (cyan/verde/violeta/naranja/rojo). Coste despreciable; oculto en idle.
+
+**`stark`**: overlay fullscreen, orb azul Stark (~420 px) centrado en pantalla con anillos rotatorios contra-sentido, tick marks de brújula, líneas de scan y núcleo radial blanco→azul. Tipografía HUD para el estado ("· E S C U C H A N D O ·"). Sigue oculto en idle salvo `always_visible = true`.
+
+| Coste durante interacción | `minimal` | `stark` |
+|---|---|---|
+| GPU 9070 XT | ~0.5–1% | ~1–3% (~3 W) |
+| RAM | 60–120 MB | 90–170 MB |
+| VRAM | 0 | 0 |
+
+> [!WARNING]
+> `always_visible = true` en modo `stark` mantiene los anillos rotatorios y el núcleo pulsando 24/7 mientras tengas sesión Hyprland abierta. Consume ~3–5 W continuos. En `minimal` el coste de tenerlo siempre visible es despreciable.
+
+**Cambiar de tema**: edita `[ui].theme`, **reinicia el daemon** (`jarvisctl restart`) y, si Quickshell ya estaba corriendo, también: `pkill qs; qs -c jarvis &`. La UI lee el tema del primer mensaje que el daemon envía por el socket.
 
 ### `[tts.dsp]` — voz tipo doblaje (Pablo Sevilla / Eduardo Bosch)
 
