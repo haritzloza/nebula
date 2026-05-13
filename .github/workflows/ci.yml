@@ -58,12 +58,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install validators
+      - name: Install jsonc-parser (jq/python3/node already on ubuntu-latest)
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends jq python3-tomli
-          # jsonc-parser local (no global, install.sh-free)
-          mkdir -p .ci && cd .ci && npm init -y >/dev/null && npm install jsonc-parser --no-audit --no-fund >/dev/null
+          set -e
+          mkdir -p .ci
+          cd .ci
+          npm init -y >/dev/null
+          npm install jsonc-parser --no-audit --no-fund --silent
+
+      - name: Verify validators
+        run: |
+          jq --version
+          python3 --version
+          python3 -c "import tomllib; print('tomllib OK')"
+          node --version
 
       - name: Validate JSON
         run: |
@@ -76,44 +84,69 @@ jobs:
               cat err.log
               fail=1
             fi
-          done < <(find . -type f -name '*.json' -not -path './.git/*' -not -path './wallpapers/aesthetic/*' -not -path './.claude/*' -not -path './.ci/*')
+          done < <(find . -type f -name '*.json' \
+              -not -path './.git/*' \
+              -not -path './wallpapers/aesthetic/*' \
+              -not -path './.claude/*' \
+              -not -path './.ci/*')
           exit "$fail"
 
       - name: Validate JSONC (config.jsonc)
         run: |
           set -e
+          # One-shot Node validator using jsonc-parser (handles comments + trailing commas).
+          # Pass file path as argv[2] to avoid shell-interpolation gotchas with filenames.
+          cat > /tmp/jsonc-check.cjs <<'NODE'
+          const { parse, printParseErrorCode } = require(process.cwd() + '/.ci/node_modules/jsonc-parser');
+          const fs = require('fs');
+          const f = process.argv[2];
+          const errors = [];
+          parse(fs.readFileSync(f, 'utf8'), errors, { allowTrailingComma: true });
+          if (errors.length) {
+            console.error(errors.map(e => 'offset ' + e.offset + ': ' + printParseErrorCode(e.error)).join('\n'));
+            process.exit(1);
+          }
+          NODE
           fail=0
           while IFS= read -r f; do
             echo "→ $f"
-            if ! node -e "
-              const { parse, printParseErrorCode } = require('./.ci/node_modules/jsonc-parser');
-              const fs = require('fs');
-              const errors = [];
-              parse(fs.readFileSync('$f','utf8'), errors, { allowTrailingComma: true });
-              if (errors.length) {
-                console.error(errors.map(e => 'offset ' + e.offset + ': ' + printParseErrorCode(e.error)).join('\n'));
-                process.exit(1);
-              }
-            " 2>err.log; then
+            if ! node /tmp/jsonc-check.cjs "$f" 2>err.log; then
               echo "::error file=$f::Invalid JSONC"
               cat err.log
               fail=1
             fi
-          done < <(find . -type f -name '*.jsonc' -not -path './.git/*' -not -path './.ci/*' -not -path './.claude/*')
+          done < <(find . -type f -name '*.jsonc' \
+              -not -path './.git/*' \
+              -not -path './.ci/*' \
+              -not -path './.claude/*')
           exit "$fail"
 
       - name: Validate TOML
         run: |
           set -e
+          # tomllib is stdlib in Python 3.11+; ubuntu-latest ships 3.12
+          cat > /tmp/toml-check.py <<'PY'
+          import sys, tomllib
+          try:
+              with open(sys.argv[1], 'rb') as fh:
+                  tomllib.load(fh)
+          except Exception as e:
+              print(f'{e}', file=sys.stderr)
+              sys.exit(1)
+          PY
           fail=0
           while IFS= read -r f; do
             echo "→ $f"
-            if ! python3 -c "import tomli; tomli.load(open('$f','rb'))" 2>err.log; then
+            if ! python3 /tmp/toml-check.py "$f" 2>err.log; then
               echo "::error file=$f::Invalid TOML"
               cat err.log
               fail=1
             fi
-          done < <(find . -type f -name '*.toml' -not -path './.git/*' -not -path './wallpapers/aesthetic/*' -not -path './.claude/*' -not -path './.ci/*')
+          done < <(find . -type f -name '*.toml' \
+              -not -path './.git/*' \
+              -not -path './wallpapers/aesthetic/*' \
+              -not -path './.claude/*' \
+              -not -path './.ci/*')
           exit "$fail"
 
   line-endings:
