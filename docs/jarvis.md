@@ -303,6 +303,63 @@ Otras voces ES disponibles (descárgalas a `~/.local/share/piper/voices/` desde 
 - `es_ES-sharvard-medium` (femenina, neutra)
 - `es_ES-mls_9972-low` (muy ligera, calidad menor)
 
+### `[tts.dsp]` — voz tipo doblaje (Pablo Sevilla / Eduardo Bosch)
+
+El sintetizador Piper produce voz neutra masculina sin cuerpo. Para acercarla al timbre de doblaje español de Jarvis sin usar VRAM extra, hay una cadena `piper → sox → pw-cat` con pitch / EQ / compresor / reverb. Coste real: **~5–8% CPU adicional mientras habla, 0 GB VRAM, 0 GB disco**.
+
+Valores por defecto (en `~/.config/jarvis/config.toml`):
+
+```toml
+[tts.dsp]
+enabled = true
+pitch_cents = -100             # 1 semitono más grave
+tempo = 1.04                   # 4% más rápido (cadencia formal)
+eq_low_hz = 200
+eq_low_gain_db = 3.0           # cuerpo/pecho
+eq_high_hz = 7500
+eq_high_gain_db = -1.5         # quita brillo metálico de Piper
+compand_attack_decay = "0.3,1"
+compand_transfer = "6:-70,-60,-20"
+compand_gain_db = -5
+reverb_mix = 10                # estudio (0=seco, 100=catedral)
+reverb_room_scale = 45
+```
+
+**Iterar sin reiniciar el daemon:**
+
+```bash
+# Edita ~/.config/jarvis/config.toml, guarda, y prueba al instante:
+jarvisctl say "Buenos días, señor. Todos los sistemas operativos."
+
+# Comparativa A/B contra Piper crudo:
+jarvisctl say --raw "Buenos días, señor."        # voz neutra original
+jarvisctl say        "Buenos días, señor."        # con DSP aplicado
+```
+
+`jarvisctl say` carga el `config.toml` cada vez, así que **no hace falta** reiniciar nada entre tweaks. Cuando estés contento con los valores, **sí** reinicia el daemon para que use los nuevos: `jarvisctl restart`.
+
+**Cómo iterar los valores:**
+
+| Problema percibido | Ajuste |
+|---|---|
+| Suena demasiado grave / "viejo" | `pitch_cents = -70` |
+| No suena suficientemente adulto | `pitch_cents = -130` |
+| Voz "metálica" o "robótica" | sube `eq_high_gain_db` (menos negativo, -1.0 o 0) |
+| Falta cuerpo / suena delgado | `eq_low_gain_db = 4.0` |
+| Eco a sala de iglesia | `reverb_mix = 5` |
+| Demasiado seco / sin presencia | `reverb_mix = 15`, `reverb_room_scale = 60` |
+| Habla demasiado rápido | `tempo = 1.0` |
+| Falta el tono formal de narrador | `tempo = 1.06`, `pitch_cents = -90` |
+
+**Volver a la voz Piper plana:**
+
+```toml
+[tts.dsp]
+enabled = false
+```
+
+**Por qué esto no llega al 100% del doblaje:** el DSP modifica timbre y ambiente, pero la individualidad de la voz (acento, prosodia, pequeñas inflexiones de Pablo Sevilla o Eduardo Bosch) es propiedad del actor, no de los efectos. Para llegar al 90%+ harían falta voice cloning (Coqui XTTS-v2 con sample del actor), que consume ~3 GB VRAM y queda como futuro upgrade (ver [FAQ](#faq)).
+
 ---
 
 ## Tools y permisos
@@ -503,9 +560,11 @@ Asegúrate de hacer `ollama pull <modelo>` antes.
 
 ### ¿Y otra voz? ¿O voz personalizada?
 
-Otra voz Piper: descarga el `.onnx` + `.json` a `~/.local/share/piper/voices/` y cambia `[tts].voice`.
+Tres niveles posibles, de menos a más fidelidad al doblaje real:
 
-Voz clonada estilo "Jarvis brit" (Iron Man): necesitas Coqui XTTS-v2. Fuera del scope actual; se podría añadir como tool alternativa. Abre un issue si te interesa.
+1. **Otra voz Piper neutra**: descarga `.onnx` + `.json` a `~/.local/share/piper/voices/` y cambia `[tts].voice`. ~50 MB extra, 0 VRAM.
+2. **Piper + DSP estilo doblaje** (el que está activo por defecto): pitch / EQ / compresor / reverb con sox. Ver [`[tts.dsp]`](#ttsdsp--voz-tipo-doblaje-pablo-sevilla--eduardo-bosch). 0 VRAM, ~5-8% CPU extra.
+3. **Voice cloning con Coqui XTTS-v2**: zero-shot cloning con un sample de 6-30 s. Llega al 85-90% de fidelidad a la voz fuente (sea Bettany original, Pablo Sevilla, o cualquier otro doblador). ~3 GB VRAM extra mientras habla y ~2 GB de disco. **No está implementado** porque rompe la promesa de "0 VRAM extra" del setup actual, pero es trivial añadirlo como `[tts.xtts]` opcional en el futuro.
 
 ### ¿Por qué no usa la GPU para Whisper?
 
