@@ -31,3 +31,9 @@ wallpapers/aesthetic/
 *.db
 *.sqlite
 *.sqlite3
+
+# Claude Code local state (worktrees, sessions, projects)
+/.claude/
+**/.claude/worktrees/
+**/.claude/sessions/
+**/.claude/projects/

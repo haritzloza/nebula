@@ -1,0 +1,30 @@
+# bat config — wrapper de `cat` con syntax + paging
+# Docs: https://github.com/sharkdp/bat
+
+# Tema (Catppuccin Mocha ships con bat ≥0.24)
+--theme="Catppuccin Mocha"
+
+# Estilo: muestra cabecera + git status + line numbers; sin grid pesado
+--style="header,header-filename,header-filesize,grid,numbers,changes"
+
+# Wrap inteligente
+--wrap=auto
+
+# Pager: less con -R (colores) -F (sale si fits) -X (no clear screen)
+--pager="less -RFX"
+
+# Mapeos de archivos sin extensión / extensiones no estándar
+--map-syntax="*.conf:INI"
+--map-syntax=".env*:DotENV"
+--map-syntax="Dockerfile*:Dockerfile"
+--map-syntax="Containerfile:Dockerfile"
+--map-syntax=".gitignore*:Git Ignore"
+--map-syntax="*.rasi:CSS"
+--map-syntax="*.jsonc:JSON"
+--map-syntax="*.profile:Bash"
+--map-syntax="hyprland.conf:INI"
+--map-syntax="hypridle.conf:INI"
+--map-syntax="hyprlock.conf:INI"
+--map-syntax="hyprpaper.conf:INI"
+--map-syntax="kitty.conf:INI"
+--map-syntax="config.kdl:Lua"

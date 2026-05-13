@@ -80,3 +80,6 @@ yazi
 
 # Terminal aesthetics
 fastfetch
+
+# Limpieza automática de cache de pacman (provee paccache + timer)
+pacman-contrib

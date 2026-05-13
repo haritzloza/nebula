@@ -7,6 +7,10 @@ hyprshade
 # Terminal aesthetics (Pokémon en cada terminal nueva)
 pokemon-colorscripts-git
 
+# Tema GTK + cursor (consistencia visual fuera de Hyprland nativo)
+catppuccin-gtk-theme-mauve
+bibata-cursor-theme
+
 # Sysadmin
 k9s-bin
 lazydocker

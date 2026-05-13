@@ -1,0 +1,133 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  shellcheck:
+    name: shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Find shell scripts
+        id: find
+        run: |
+          mapfile -t files < <(find . \
+            -type f \
+            \( -name '*.sh' -o -name '*.bash' \) \
+            -not -path './.git/*' \
+            -not -path './wallpapers/aesthetic/*')
+          {
+            echo "files<<EOF"
+            printf '%s\n' "${files[@]}"
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+          printf '%d shell scripts to check:\n' "${#files[@]}"
+          printf '  %s\n' "${files[@]}"
+
+      - name: ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        env:
+          SHELLCHECK_OPTS: -e SC1090 -e SC1091 -e SC2155 -e SC2034
+        with:
+          severity: warning
+          ignore_paths: wallpapers/aesthetic
+
+  validate-configs:
+    name: validate configs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install validators
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends jq python3-tomli
+          # jsonc-parser local (no global, install.sh-free)
+          mkdir -p .ci && cd .ci && npm init -y >/dev/null && npm install jsonc-parser --no-audit --no-fund >/dev/null
+
+      - name: Validate JSON
+        run: |
+          set -e
+          fail=0
+          while IFS= read -r f; do
+            echo "→ $f"
+            if ! jq empty "$f" 2>err.log; then
+              echo "::error file=$f::Invalid JSON"
+              cat err.log
+              fail=1
+            fi
+          done < <(find . -type f -name '*.json' -not -path './.git/*' -not -path './wallpapers/aesthetic/*' -not -path './.claude/*' -not -path './.ci/*')
+          exit "$fail"
+
+      - name: Validate JSONC (config.jsonc)
+        run: |
+          set -e
+          fail=0
+          while IFS= read -r f; do
+            echo "→ $f"
+            if ! node -e "
+              const { parse, printParseErrorCode } = require('./.ci/node_modules/jsonc-parser');
+              const fs = require('fs');
+              const errors = [];
+              parse(fs.readFileSync('$f','utf8'), errors, { allowTrailingComma: true });
+              if (errors.length) {
+                console.error(errors.map(e => 'offset ' + e.offset + ': ' + printParseErrorCode(e.error)).join('\n'));
+                process.exit(1);
+              }
+            " 2>err.log; then
+              echo "::error file=$f::Invalid JSONC"
+              cat err.log
+              fail=1
+            fi
+          done < <(find . -type f -name '*.jsonc' -not -path './.git/*' -not -path './.ci/*' -not -path './.claude/*')
+          exit "$fail"
+
+      - name: Validate TOML
+        run: |
+          set -e
+          fail=0
+          while IFS= read -r f; do
+            echo "→ $f"
+            if ! python3 -c "import tomli; tomli.load(open('$f','rb'))" 2>err.log; then
+              echo "::error file=$f::Invalid TOML"
+              cat err.log
+              fail=1
+            fi
+          done < <(find . -type f -name '*.toml' -not -path './.git/*' -not -path './wallpapers/aesthetic/*' -not -path './.claude/*' -not -path './.ci/*')
+          exit "$fail"
+
+  line-endings:
+    name: enforce LF line endings
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for CRLF in text files
+        run: |
+          set -e
+          fail=0
+          while IFS= read -r f; do
+            if file -b "$f" | grep -q 'CRLF'; then
+              echo "::error file=$f::contains CRLF line endings — must be LF"
+              fail=1
+            fi
+          done < <(find . -type f \
+              \( -name '*.sh' -o -name '*.conf' -o -name '*.toml' \
+              -o -name '*.lua' -o -name '*.json' -o -name '*.jsonc' \
+              -o -name '*.css' -o -name '*.rasi' -o -name '*.profile' \
+              -o -name '*.service' -o -name '*.timer' \) \
+              -not -path './.git/*' -not -path './wallpapers/aesthetic/*' -not -path './.claude/*' -not -path './.ci/*')
+          exit "$fail"

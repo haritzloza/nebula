@@ -1,0 +1,131 @@
+# ~/.gitconfig — sensible defaults
+# La identidad (user.name/email) la pone install.sh interactivamente, no aquí.
+
+[init]
+    defaultBranch = main
+
+[core]
+    editor = nvim
+    pager = delta
+    autocrlf = false
+    eol = lf
+    excludesfile = ~/.config/git/ignore
+    untrackedCache = true
+
+[pull]
+    rebase = true
+    ff = only
+
+[push]
+    default = current
+    autoSetupRemote = true
+    followTags = true
+
+[fetch]
+    prune = true
+    pruneTags = true
+
+[rebase]
+    autoStash = true
+    autoSquash = true
+
+[merge]
+    conflictStyle = zdiff3
+
+[diff]
+    algorithm = histogram
+    colorMoved = default
+    renames = copies
+
+[interactive]
+    diffFilter = delta --color-only
+
+[delta]
+    navigate = true
+    light = false
+    line-numbers = true
+    side-by-side = false
+    syntax-theme = Catppuccin-mocha
+    file-style = bold "#cba6f7"
+    hunk-header-style = "#fab387" italic
+    plus-style = syntax "#1e3a2e"
+    minus-style = syntax "#3a1e2e"
+
+[color]
+    ui = auto
+[color "branch"]
+    current = magenta bold
+    local   = blue
+    remote  = green
+[color "diff"]
+    meta = yellow bold
+    frag = magenta bold
+    old  = red
+    new  = green
+[color "status"]
+    added     = green
+    changed   = yellow
+    untracked = red
+
+# ─── Aliases ──────────────────────────────────────────────────
+[alias]
+    # status / log
+    s     = status -sb
+    st    = status
+    l     = log --oneline --graph --decorate -20
+    ll    = log --oneline --graph --decorate --all
+    lg    = log --graph --abbrev-commit --decorate --pretty=format:'%C(auto)%h%d %s %C(dim)(%cr) <%an>%C(reset)' --all
+    last  = log -1 HEAD --stat
+
+    # diff
+    d     = diff
+    dc    = diff --cached
+    ds    = diff --stat
+
+    # branch
+    b     = branch
+    co    = checkout
+    sw    = switch
+    swc   = switch -c
+
+    # commit
+    c     = commit -v
+    ca    = commit -av
+    amend = commit --amend --no-edit
+    fix   = commit --fixup
+
+    # remote / sync
+    p     = push
+    pf    = push --force-with-lease
+    pl    = pull
+    f     = fetch --all --prune
+
+    # stash
+    sl    = stash list
+    sp    = stash pop
+    ss    = stash save
+
+    # utilidades
+    aliases   = config --get-regexp ^alias\\.
+    contributors = shortlog -sne
+    undo  = reset --soft HEAD~1
+    nuke  = reset --hard HEAD
+
+# ─── Plataformas ──────────────────────────────────────────────
+[credential]
+    helper = cache --timeout=14400
+
+[github]
+    user = haritzloza
+
+# ─── Signing (opcional, descomenta y configura) ────────────────
+# [user]
+#     signingkey = SSH-PUBLIC-KEY-HERE
+# [commit]
+#     gpgsign = true
+# [tag]
+#     gpgsign = true
+# [gpg]
+#     format = ssh
+# [gpg "ssh"]
+#     allowedSignersFile = ~/.ssh/allowed_signers

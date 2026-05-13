@@ -1,0 +1,39 @@
+# Global gitignore (~/.config/git/ignore)
+# Aplicable a todos los repos sin que cada uno lo declare.
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Editor / IDE caches
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.~lock.*
+.netrwhist
+
+# Builds / deps
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+target/
+dist/
+build/
+
+# Local env
+.env.local
+.envrc
+.direnv/
+
+# Logs / runtime
+*.log
+*.pid
+
+# Tags
+tags
+.tags

@@ -15,8 +15,8 @@ DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROFILE_DIR="$DOTFILES_DIR/packages/profiles"
 STATE_FILE="$DOTFILES_DIR/.install.state"
 
-ALL_STOW_PACKAGES=(hypr waybar rofi kitty nvim tmux zsh starship swaync claude ssh wlogout fastfetch hyprpaper matugen systemd-user)
-DEFAULT_STOW=(hypr waybar rofi kitty zsh starship swaync claude wlogout fastfetch)
+ALL_STOW_PACKAGES=(hypr waybar rofi kitty nvim tmux zsh starship swaync claude ssh wlogout fastfetch hyprpaper matugen systemd-user git gtk bat)
+DEFAULT_STOW=(hypr waybar rofi kitty zsh starship swaync claude wlogout fastfetch git gtk bat)
 
 DRYRUN=0
 SKIP_PKGS=0
@@ -164,7 +164,7 @@ build_install_set() {
 
     [[ ${FLAGS[hypr]}          == 1 ]] && SELECTED_STOW+=(hypr)
     [[ ${FLAGS[waybar]}        == 1 ]] && SELECTED_STOW+=(waybar)
-    SELECTED_STOW+=(rofi kitty zsh starship swaync claude wlogout fastfetch)
+    SELECTED_STOW+=(rofi kitty zsh starship swaync claude wlogout fastfetch git gtk bat)
 
     if [[ ${FLAGS[theme_dynamic]} == 1 ]]; then
         PACMAN_FILES+=("$DOTFILES_DIR/packages/extra/swww.txt")
@@ -357,11 +357,50 @@ setup_ssh_key() {
     ssh-keygen -t ed25519 -N "" -f "$HOME/.ssh/id_ed25519" -C "$(hostname)-$(whoami)"
 }
 
+setup_git_identity() {
+    (( DRYRUN )) && return 0
+    # .gitconfig versionado no tiene [user] — pedirla si falta
+    local existing_name existing_email
+    existing_name=$(git config --global user.name 2>/dev/null || true)
+    existing_email=$(git config --global user.email 2>/dev/null || true)
+    [[ -n "$existing_name" && -n "$existing_email" ]] && return 0
+
+    if ! command -v whiptail >/dev/null; then
+        warn "git user.name/user.email no configurados; ejecuta: git config --global user.{name,email}"
+        return 0
+    fi
+
+    local name email
+    name=$(whiptail --title "Git identity" --inputbox "Nombre para los commits:" 10 60 "${existing_name:-$USER}" 3>&1 1>&2 2>&3) || return 0
+    email=$(whiptail --title "Git identity" --inputbox "Email para los commits:" 10 60 "$existing_email" 3>&1 1>&2 2>&3) || return 0
+
+    [[ -n "$name" ]]  && git config --global user.name  "$name"
+    [[ -n "$email" ]] && git config --global user.email "$email"
+    ok "git identity → $name <$email>"
+}
+
 enable_services() {
     (( DRYRUN )) && return 0
     log "Habilitando servicios base"
     sudo systemctl enable --now NetworkManager bluetooth 2>/dev/null || true
     systemctl --user enable --now pipewire pipewire-pulse wireplumber 2>/dev/null || true
+
+    # Cache pacman: limpieza semanal automática (deja 3 versiones)
+    if systemctl list-unit-files paccache.timer >/dev/null 2>&1; then
+        sudo systemctl enable --now paccache.timer 2>/dev/null || true
+    fi
+}
+
+apply_gtk_theme() {
+    (( DRYRUN )) && return 0
+    command -v gsettings >/dev/null || return 0
+    log "Aplicando tema GTK + cursor (gsettings + Hyprland)"
+    gsettings set org.gnome.desktop.interface gtk-theme 'catppuccin-mocha-mauve-standard+default' 2>/dev/null || true
+    gsettings set org.gnome.desktop.interface icon-theme 'Papirus-Dark' 2>/dev/null || true
+    gsettings set org.gnome.desktop.interface cursor-theme 'Bibata-Modern-Classic' 2>/dev/null || true
+    gsettings set org.gnome.desktop.interface cursor-size 24 2>/dev/null || true
+    gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark' 2>/dev/null || true
+    command -v hyprctl >/dev/null && hyprctl setcursor Bibata-Modern-Classic 24 2>/dev/null || true
 }
 
 post_install_summary() {
@@ -423,9 +462,11 @@ main() {
 
     setup_shell
     setup_ssh_key
+    setup_git_identity
     enable_services
     apply_monitors
     apply_sddm
+    apply_gtk_theme
     apply_hardening
 
     # Persistir estado

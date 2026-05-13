@@ -8,6 +8,7 @@
 
 <br />
 
+[![CI](https://img.shields.io/github/actions/workflow/status/haritzloza/nebula/ci.yml?branch=main&style=for-the-badge&labelColor=1e1e2e&logo=github)](https://github.com/haritzloza/nebula/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-cba6f7?style=for-the-badge&labelColor=1e1e2e)](LICENSE)
 [![CachyOS](https://img.shields.io/badge/Distro-CachyOS-89b4fa?style=for-the-badge&logo=archlinux&logoColor=white&labelColor=1e1e2e)](https://cachyos.org)
 [![Hyprland](https://img.shields.io/badge/WM-Hyprland-94e2d5?style=for-the-badge&labelColor=1e1e2e)](https://hyprland.org)
@@ -65,6 +66,10 @@
 | **Modern lock & logout** | `hyprlock` + `wlogout` | Glass blur lock screen with battery readout, six-action exit menu |
 | **Eye-care shaders** | `hyprshade` schedule | Auto blue-light filter 19:00-06:00; cycle shaders manually with `SUPER+SHIFT+S` |
 | **Gaming-ready** | Hyprland tear-free rules | `immediate`, `noanim`, `noblur` for `steam_app_*` and `gamescope` |
+| **GTK + cursor** | Catppuccin Mocha (Mauve) + Bibata cursor | Consistent look for nautilus, blueman, pavucontrol and every GTK app |
+| **`bat`, `git`, `delta`** | Versioned dotfiles | Catppuccin pager for `git diff`, sensible aliases, global gitignore |
+| **Auto pacman cache cleanup** | `paccache.timer` enabled | Trims old package versions weekly to free disk |
+| **CI on the repo** | GitHub Actions | `shellcheck` + JSON/TOML/JSONC validation + LF line ending enforcement on every push |
 | **Optional layers** | Stow-managed extras | Gaming pack, AI editors (VSCode / Cursor / Zed / Claude Desktop), hardening (UFW / sshd) |
 
 ## Preview
@@ -277,7 +282,11 @@ dotfiles/
 ├── ssh/                       # ssh/config template
 ├── scripts/                   # wallhaven fetcher, etc.
 ├── wallpapers/                # aesthetic submodule (MIT)
-└── claude/                    # ~/.claude/ settings, MCP, global CLAUDE.md
+├── claude/                    # ~/.claude/ settings, MCP, global CLAUDE.md
+├── git/                       # .gitconfig with delta + aliases + global ignore
+├── gtk/                       # GTK 2/3/4 settings.ini (Catppuccin + Bibata)
+├── bat/                       # bat pager config (Catppuccin theme + syntax maps)
+└── .github/workflows/         # CI (shellcheck + JSON/TOML validators + LF enforcement)
 ```
 
 ## Customization
