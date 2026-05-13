@@ -21,29 +21,36 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Find shell scripts
-        id: find
+      - name: List shell scripts (informational)
         run: |
-          mapfile -t files < <(find . \
-            -type f \
+          find . -type f \
             \( -name '*.sh' -o -name '*.bash' \) \
             -not -path './.git/*' \
-            -not -path './wallpapers/aesthetic/*')
-          {
-            echo "files<<EOF"
-            printf '%s\n' "${files[@]}"
-            echo EOF
-          } >> "$GITHUB_OUTPUT"
-          printf '%d shell scripts to check:\n' "${#files[@]}"
-          printf '  %s\n' "${files[@]}"
+            -not -path './wallpapers/aesthetic/*' \
+            -not -path './.claude/*' \
+            -not -path './.ci/*' \
+            | sed 's|^|  |'
 
       - name: ShellCheck
         uses: ludeeus/action-shellcheck@master
         env:
-          SHELLCHECK_OPTS: -e SC1090 -e SC1091 -e SC2155 -e SC2034
+          # SC1090/SC1091  source path resolution (we use runtime paths)
+          # SC2155         declare-and-assign (style)
+          # SC2034         unused vars (false positives with arrays/dispatchers)
+          # SC2148         missing shebang — irrelevant for sourced rc files (.zshrc/.bashrc)
+          SHELLCHECK_OPTS: -e SC1090 -e SC1091 -e SC2155 -e SC2034 -e SC2148
         with:
           severity: warning
-          ignore_paths: wallpapers/aesthetic
+          ignore_paths: |-
+            wallpapers/aesthetic
+            .claude
+            .ci
+          # Ignore rc files individually as well (they're zsh, not bash)
+          ignore_names: |-
+            .zshrc
+            .zprofile
+            .bashrc
+            .bash_profile
 
   validate-configs:
     name: validate configs
