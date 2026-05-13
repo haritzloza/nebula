@@ -27,6 +27,31 @@ sample_rate = 22050
 # Velocidad: 1.0 = normal; <1 = más lento
 length_scale = 1.0
 
+# Post-procesado de audio con sox para acercar el timbre al doblaje español
+# de Jarvis (Pablo Sevilla / Eduardo Bosch): voz grave, formal, con cuerpo de
+# estudio. Cero VRAM extra; ~5-8% CPU adicional mientras habla.
+# Si sox falla o no está instalado, cae a Piper raw sin romper.
+[tts.dsp]
+enabled = true
+# Pitch en centisemitonos (100 = 1 semitono). Negativo = más grave.
+# Rango útil: -50 (sutil) a -150 (claramente más adulto). -100 ≈ Pablo Sevilla.
+pitch_cents = -100
+# Tempo (1.0 = velocidad original; >1 más rápido). El doblaje formal va ~1.03-1.05.
+tempo = 1.04
+# EQ: realza graves (cuerpo/pecho) y atenúa agudos (brillo metálico de Piper).
+eq_low_hz = 200
+eq_low_gain_db = 3.0
+eq_high_hz = 7500
+eq_high_gain_db = -1.5
+# Compresor: uniformidad de "narrador". Sintaxis sox `compand`.
+compand_attack_decay = "0.3,1"
+compand_transfer = "6:-70,-60,-20"
+compand_gain_db = -5
+# Reverb: sensación de sala de doblaje. 0 = seco; 100 = catedral. 8-15 = estudio.
+reverb_mix = 10
+reverb_room_scale = 45
+# Si quieres voz neutra de Piper sin DSP, pon enabled = false y reinicia.
+
 [wake]
 # Modelo: hey_jarvis_v0.1 (precargado en openWakeWord)
 model = "hey_jarvis_v0.1"
@@ -51,6 +76,17 @@ max_utterance_s = 15.0
 socket = "$XDG_RUNTIME_DIR/jarvis.sock"
 # Idle, listening, thinking, speaking, muted, error
 log_state_changes = true
+# Tema del HUD Quickshell:
+#   "minimal" → card abajo-centro con orb pequeño + waveform + transcripción
+#               semafórica por estado (idle=cyan, listening=verde, etc.). Ligero.
+#   "stark"   → overlay fullscreen, orb azul Stark grande centrado en pantalla,
+#               anillos rotatorios contra-sentido, tick marks, líneas de scan,
+#               estética HUD de Iron Man. ~3 W extra GPU solo durante interacción.
+theme = "minimal"
+# Si true, el HUD se queda visible incluso en idle (modo "ambient orb").
+# OJO: en modo stark, esto mantiene los shaders activos 24/7 (~3-5 W continuo).
+# En modo minimal el coste es despreciable.
+always_visible = false
 
 [paths]
 state_dir = "~/.local/state/jarvis"

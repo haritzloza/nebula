@@ -71,11 +71,10 @@ cmd_ask() {
 }
 
 cmd_say() {
-    [[ $# -ge 1 ]] || { echo "uso: jarvisctl say 'texto'" >&2; exit 2; }
-    local voice="$VOICE_DIR/es_ES-davefx-medium.onnx"
-    [[ -f "$voice" ]] || { echo "voz no instalada: jarvisctl fetch-voice" >&2; exit 1; }
-    printf '%s' "$*" | piper --model "$voice" --output-raw \
-        | pw-cat -p --format=s16 --rate=22050 --channels=1 -
+    # Reutiliza la cadena TTS del daemon (Piper + DSP del config.toml).
+    # Soporta `jarvisctl say --raw "texto"` para saltar el DSP en pruebas A/B.
+    [[ $# -ge 1 ]] || { echo "uso: jarvisctl say [--raw] 'texto'" >&2; exit 2; }
+    python "$HOME/.config/jarvis/tools/_dev_tts.py" "$@"
 }
 
 cmd_fetch_voice() {

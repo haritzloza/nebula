@@ -18,7 +18,6 @@ import json
 import logging
 import os
 import signal
-import subprocess
 import sys
 import time
 from dataclasses import dataclass, field
@@ -38,6 +37,7 @@ except ModuleNotFoundError:  # py < 3.11
 # Imports locales (se cargan perezosamente para que --help no requiera deps pesadas)
 sys.path.insert(0, str(Path(__file__).parent))
 from tools import REGISTRY, ToolError, build_tool_schemas  # noqa: E402
+from tts_pipeline import DSPParams, speak_async  # noqa: E402
 
 LOG = logging.getLogger("jarvis")
 
@@ -89,11 +89,13 @@ class State:
 # Bus de estado (socket UNIX line-delimited JSON)
 # ──────────────────────────────────────────────────────────────────────────
 class StateBus:
-    def __init__(self, socket_path: Path) -> None:
+    def __init__(self, socket_path: Path, ui_config: dict[str, Any] | None = None) -> None:
         self.socket_path = socket_path
         self.clients: set[asyncio.StreamWriter] = set()
         self.state = State()
         self._lock = asyncio.Lock()
+        # Config UI que se envía al conectar un cliente Quickshell (theme, etc.)
+        self.ui_config = ui_config or {}
 
     async def serve(self) -> None:
         self.socket_path.parent.mkdir(parents=True, exist_ok=True)
@@ -107,8 +109,9 @@ class StateBus:
     async def _on_client(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
         self.clients.add(writer)
         try:
-            # Snapshot inicial
-            await self._send(writer, self.state.snapshot())
+            # Snapshot inicial: estado + config para que la UI sepa el tema
+            initial = {**self.state.snapshot(), "config": self.ui_config}
+            await self._send(writer, initial)
             # Mantener vivo hasta EOF; no leemos nada del cliente
             while not reader.at_eof():
                 await reader.read(1024)
@@ -417,41 +420,11 @@ def _audit(path: Path, ts: str, name: str, args: dict[str, Any], result: str) ->
 
 
 # ──────────────────────────────────────────────────────────────────────────
-# TTS
+# TTS  (la cadena real vive en tts_pipeline.py para que jarvisctl say y los
+# scripts _dev_*.py usen exactamente el mismo procesado)
 # ──────────────────────────────────────────────────────────────────────────
-async def speak(text: str, voice_path: Path, sample_rate: int) -> None:
-    if not text.strip():
-        return
-    if not voice_path.exists():
-        LOG.warning("voz piper no encontrada en %s; fallback notify-send", voice_path)
-        subprocess.run(["notify-send", "Jarvis", text], check=False)
-        return
-
-    proc_piper = await asyncio.create_subprocess_exec(
-        "piper",
-        "--model",
-        str(voice_path),
-        "--output-raw",
-        stdin=asyncio.subprocess.PIPE,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.DEVNULL,
-    )
-    proc_play = await asyncio.create_subprocess_exec(
-        "pw-cat",
-        "-p",
-        "--format=s16",
-        f"--rate={sample_rate}",
-        "--channels=1",
-        "-",
-        stdin=proc_piper.stdout,
-        stdout=asyncio.subprocess.DEVNULL,
-        stderr=asyncio.subprocess.DEVNULL,
-    )
-    assert proc_piper.stdin is not None
-    proc_piper.stdin.write(text.encode("utf-8"))
-    await proc_piper.stdin.drain()
-    proc_piper.stdin.close()
-    await asyncio.gather(proc_piper.wait(), proc_play.wait())
+async def speak(text: str, voice_path: Path, sample_rate: int, dsp: DSPParams) -> None:
+    await speak_async(text, voice_path, sample_rate, dsp)
 
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -506,7 +479,11 @@ async def amain(config_path: Path) -> int:
 
     socket_path = _expand(cfg["ui"]["socket"])
     control_path = socket_path.with_name("jarvis-ctl.sock")
-    bus = StateBus(socket_path)
+    ui_cfg = {
+        "theme": cfg["ui"].get("theme", "minimal"),
+        "always_visible": bool(cfg["ui"].get("always_visible", False)),
+    }
+    bus = StateBus(socket_path, ui_config=ui_cfg)
     ctl = ControlChannel(control_path)
 
     audio = AudioCapture(cfg["capture"]["sample_rate"], cfg["capture"]["frame_size"])
@@ -522,6 +499,7 @@ async def amain(config_path: Path) -> int:
         cfg["llm"]["endpoint"], cfg["llm"]["model"], cfg["llm"]["temperature"], cfg["llm"]["keep_alive"]
     )
     voice = _expand(cfg["tts"]["voice"])
+    dsp = DSPParams.from_config(cfg["tts"])
 
     prompt_path = Path(__file__).parent / "prompts" / "system.md"
     system_template = prompt_path.read_text(encoding="utf-8")
@@ -554,7 +532,7 @@ async def amain(config_path: Path) -> int:
         if cfg["wake"]["mute_on_speak"]:
             audio.muted = True
         try:
-            await speak(response, voice, cfg["tts"]["sample_rate"])
+            await speak(response, voice, cfg["tts"]["sample_rate"], dsp)
         finally:
             audio.muted = False
         # acota historia (últimos 12 turnos)
