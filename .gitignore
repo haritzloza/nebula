@@ -24,6 +24,9 @@ Thumbs.db
 # Estado del instalador
 .install.state
 
+# CI local artifacts (npm install dir)
+/ci-tools/
+
 # Wallpapers descargados (vienen por submodule/script)
 wallpapers/aesthetic/
 

@@ -28,7 +28,7 @@ jobs:
             -not -path './.git/*' \
             -not -path './wallpapers/aesthetic/*' \
             -not -path './.claude/*' \
-            -not -path './.ci/*' \
+            -not -path './ci-tools/*' \
             | sed 's|^|  |'
 
       - name: ShellCheck
@@ -44,7 +44,7 @@ jobs:
           ignore_paths: |-
             wallpapers/aesthetic
             .claude
-            .ci
+            ci-tools
           # Ignore rc files individually as well (they're zsh, not bash)
           ignore_names: |-
             .zshrc
@@ -61,10 +61,17 @@ jobs:
       - name: Install jsonc-parser (jq/python3/node already on ubuntu-latest)
         run: |
           set -e
-          mkdir -p .ci
-          cd .ci
-          npm init -y >/dev/null
-          npm install jsonc-parser --no-audit --no-fund --silent
+          mkdir -p ci-tools
+          cat > ci-tools/package.json <<'PKG'
+          {
+            "name": "nebula-ci-tools",
+            "version": "1.0.0",
+            "private": true,
+            "description": "Local CI deps (jsonc-parser)"
+          }
+          PKG
+          npm install --prefix ci-tools jsonc-parser --no-audit --no-fund
+          ls -la ci-tools/node_modules/jsonc-parser/
 
       - name: Verify validators
         run: |
@@ -88,7 +95,7 @@ jobs:
               -not -path './.git/*' \
               -not -path './wallpapers/aesthetic/*' \
               -not -path './.claude/*' \
-              -not -path './.ci/*')
+              -not -path './ci-tools/*')
           exit "$fail"
 
       - name: Validate JSONC (config.jsonc)
@@ -97,7 +104,7 @@ jobs:
           # One-shot Node validator using jsonc-parser (handles comments + trailing commas).
           # Pass file path as argv[2] to avoid shell-interpolation gotchas with filenames.
           cat > /tmp/jsonc-check.cjs <<'NODE'
-          const { parse, printParseErrorCode } = require(process.cwd() + '/.ci/node_modules/jsonc-parser');
+          const { parse, printParseErrorCode } = require(process.cwd() + '/ci-tools/node_modules/jsonc-parser');
           const fs = require('fs');
           const f = process.argv[2];
           const errors = [];
@@ -117,7 +124,7 @@ jobs:
             fi
           done < <(find . -type f -name '*.jsonc' \
               -not -path './.git/*' \
-              -not -path './.ci/*' \
+              -not -path './ci-tools/*' \
               -not -path './.claude/*')
           exit "$fail"
 
@@ -146,7 +153,7 @@ jobs:
               -not -path './.git/*' \
               -not -path './wallpapers/aesthetic/*' \
               -not -path './.claude/*' \
-              -not -path './.ci/*')
+              -not -path './ci-tools/*')
           exit "$fail"
 
   line-endings:
@@ -169,5 +176,5 @@ jobs:
               -o -name '*.lua' -o -name '*.json' -o -name '*.jsonc' \
               -o -name '*.css' -o -name '*.rasi' -o -name '*.profile' \
               -o -name '*.service' -o -name '*.timer' \) \
-              -not -path './.git/*' -not -path './wallpapers/aesthetic/*' -not -path './.claude/*' -not -path './.ci/*')
+              -not -path './.git/*' -not -path './wallpapers/aesthetic/*' -not -path './.claude/*' -not -path './ci-tools/*')
           exit "$fail"
