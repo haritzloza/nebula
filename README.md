@@ -175,6 +175,7 @@ Optional layers (selectable in `custom` mode):
 - `wallpapers` — clone the MIT aesthetic pack as a git submodule
 - `sddm` — install and configure the SDDM Astronaut theme
 - `monitors` — battery / temp / disk timers as systemd-user services
+- `jarvis` — 100% local voice assistant (Ollama + Whisper + Piper + Quickshell HUD). See [docs/jarvis.md](docs/jarvis.md) for the full install guide.
 
 ## Keybindings
 
@@ -243,6 +244,9 @@ flowchart TD
 ## Jarvis — local voice assistant
 
 Opt-in feature (`jarvis` flag) that adds a 100% local voice assistant — wake word, STT, LLM with tool-calling, TTS and a Quickshell HUD overlay. Designed for AMD GPUs (tested with RX 9070 XT / RDNA4).
+
+> [!NOTE]
+> Esta sección es el resumen rápido. La **guía completa paso a paso** (requisitos, instalación, primer arranque, validación, configuración, troubleshooting y FAQ) está en [docs/jarvis.md](docs/jarvis.md).
 
 ```mermaid
 flowchart LR
