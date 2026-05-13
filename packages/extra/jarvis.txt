@@ -1,0 +1,25 @@
+# Jarvis (asistente de voz local) — pacman repos
+# Requiere kernel >= 6.13 y linux-firmware-amdgpu para RDNA4
+# Activado por flag jarvis=1 en install.sh
+
+# LLM serve (ROCm para gfx1201 / 9070 XT)
+ollama-rocm
+
+# Audio I/O Python sobre Pipewire
+python-sounddevice
+python-numpy
+
+# HTTP + TOML + tipado en daemon
+python-httpx
+python-pydantic
+python-tomli
+
+# Docker para SearXNG (búsqueda web local)
+docker
+docker-compose
+
+# Subtítulos / TTS helpers
+sox
+
+# Notificaciones / clipboard (ya suelen estar, redundante por seguridad)
+libnotify

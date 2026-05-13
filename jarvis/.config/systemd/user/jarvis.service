@@ -1,0 +1,16 @@
+[Unit]
+Description=Jarvis local assistant daemon
+Documentation=file://%h/.config/jarvis/jarvis-daemon.py
+After=ollama.service pipewire.service
+Wants=ollama.service
+
+[Service]
+Type=simple
+ExecStartPre=/bin/sh -c 'systemctl --user is-active --quiet ollama.service || systemctl --user start ollama.service'
+ExecStart=/usr/bin/python %h/.config/jarvis/jarvis-daemon.py
+Environment=JARVIS_CONFIG=%h/.config/jarvis/config.toml
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

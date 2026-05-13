@@ -1,0 +1,124 @@
+#!/usr/bin/env bash
+# jarvisctl — controlador del daemon Jarvis
+#
+# Subcomandos:
+#   start | stop | restart | status   gestión del servicio user
+#   toggle-listen                     silencia/reactiva el wake word
+#   ptt                               push-to-talk one-shot
+#   ask "texto"                       envia texto sin pasar por voz (debug/headless)
+#   say "texto"                       TTS directo (debug)
+#   fetch-voice [voz]                 descarga voz Piper (default es_ES-davefx-medium)
+#   backend ollama|vulkan             cambia el backend de LLM (futuro)
+#   tail-audit | tail-session         tail -f de los logs
+
+set -euo pipefail
+
+XRD="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+STATE_SOCK="$XRD/jarvis.sock"
+CTL_SOCK="$XRD/jarvis-ctl.sock"
+
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/jarvis"
+AUDIT_LOG="$STATE_DIR/audit.log"
+SESSION_LOG="$STATE_DIR/session.log"
+
+VOICE_DIR="$HOME/.local/share/piper/voices"
+
+have() { command -v "$1" >/dev/null 2>&1; }
+
+usage() {
+    sed -n '2,20p' "$0"
+    exit "${1:-0}"
+}
+
+send_cmd() {
+    # send_cmd '{"action":"toggle_listen"}'
+    local payload="$1"
+    if [[ ! -S "$CTL_SOCK" ]]; then
+        echo "jarvis no está corriendo (no hay socket en $CTL_SOCK)" >&2
+        return 1
+    fi
+    if have nc; then
+        printf '%s\n' "$payload" | nc -U -q1 "$CTL_SOCK"
+    elif have socat; then
+        printf '%s\n' "$payload" | socat - "UNIX-CONNECT:$CTL_SOCK"
+    else
+        # Fallback con python (siempre disponible si jarvis funciona)
+        python -c '
+import json, socket, sys
+s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+s.connect(sys.argv[1])
+s.sendall(sys.argv[2].encode() + b"\n")
+print(s.recv(4096).decode().rstrip())
+' "$CTL_SOCK" "$payload"
+    fi
+}
+
+cmd_start()   { systemctl --user start jarvis.service; }
+cmd_stop()    { systemctl --user stop jarvis.service; }
+cmd_restart() { systemctl --user restart jarvis.service; }
+cmd_status()  { systemctl --user status jarvis.service --no-pager; }
+
+cmd_toggle_listen() { send_cmd '{"action":"toggle_listen"}'; }
+cmd_ptt()           { send_cmd '{"action":"ptt"}'; }
+
+cmd_ask() {
+    [[ $# -ge 1 ]] || { echo "uso: jarvisctl ask 'texto'" >&2; exit 2; }
+    local text="$*"
+    # Escapado JSON básico
+    local esc
+    esc=$(python -c 'import json,sys; print(json.dumps(sys.argv[1]))' "$text")
+    send_cmd "{\"action\":\"ask\",\"text\":$esc}"
+}
+
+cmd_say() {
+    [[ $# -ge 1 ]] || { echo "uso: jarvisctl say 'texto'" >&2; exit 2; }
+    local voice="$VOICE_DIR/es_ES-davefx-medium.onnx"
+    [[ -f "$voice" ]] || { echo "voz no instalada: jarvisctl fetch-voice" >&2; exit 1; }
+    printf '%s' "$*" | piper --model "$voice" --output-raw \
+        | pw-cat -p --format=s16 --rate=22050 --channels=1 -
+}
+
+cmd_fetch_voice() {
+    local voice="${1:-es_ES-davefx-medium}"
+    mkdir -p "$VOICE_DIR"
+    local base="https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_ES/davefx/medium"
+    case "$voice" in
+        es_ES-davefx-medium)
+            for f in "$voice.onnx" "$voice.onnx.json"; do
+                [[ -f "$VOICE_DIR/$f" ]] && { echo "$f ya existe"; continue; }
+                echo "Descargando $f..."
+                curl -fL --progress-bar -o "$VOICE_DIR/$f" "$base/$f"
+            done
+            ;;
+        *)
+            echo "Voz '$voice' no contemplada. Edita jarvisctl o descarga manual." >&2
+            exit 1
+            ;;
+    esac
+    echo "OK. Voz disponible en $VOICE_DIR/$voice.onnx"
+}
+
+cmd_tail_audit()   { tail -F "$AUDIT_LOG" 2>/dev/null || { echo "log vacío"; exit 0; }; }
+cmd_tail_session() { tail -F "$SESSION_LOG" 2>/dev/null || { echo "log vacío"; exit 0; }; }
+
+main() {
+    [[ $# -ge 1 ]] || usage 2
+    local sub="$1"; shift
+    case "$sub" in
+        start)         cmd_start ;;
+        stop)          cmd_stop ;;
+        restart)       cmd_restart ;;
+        status)        cmd_status ;;
+        toggle-listen) cmd_toggle_listen ;;
+        ptt)           cmd_ptt ;;
+        ask)           cmd_ask "$@" ;;
+        say)           cmd_say "$@" ;;
+        fetch-voice)   cmd_fetch_voice "$@" ;;
+        tail-audit)    cmd_tail_audit ;;
+        tail-session)  cmd_tail_session ;;
+        -h|--help|help) usage 0 ;;
+        *) echo "subcomando desconocido: $sub" >&2; usage 2 ;;
+    esac
+}
+
+main "$@"

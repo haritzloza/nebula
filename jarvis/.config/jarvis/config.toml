@@ -1,0 +1,78 @@
+# Configuración de Jarvis — asistente local
+# Edita libremente; el daemon recarga al reiniciar el servicio.
+
+[llm]
+endpoint = "http://127.0.0.1:11434"
+model = "qwen3:14b"
+embed_model = "nomic-embed-text"
+# Temperatura baja: respuestas más directas, mejor tool-calling
+temperature = 0.4
+# Mantén el modelo cargado 15 min tras última query
+keep_alive = "15m"
+
+[stt]
+# faster-whisper: tiny/base/small/medium/large-v3
+# 'medium' es el sweet spot para frases cortas en castellano sobre CPU
+model = "medium"
+language = "es"
+device = "cpu"
+compute_type = "int8"
+# vad_filter usa Silero embebido
+vad_filter = true
+
+[tts]
+# Modelo Piper ONNX (descarga con: jarvisctl fetch-voice)
+voice = "~/.local/share/piper/voices/es_ES-davefx-medium.onnx"
+sample_rate = 22050
+# Velocidad: 1.0 = normal; <1 = más lento
+length_scale = 1.0
+
+[wake]
+# Modelo: hey_jarvis_v0.1 (precargado en openWakeWord)
+model = "hey_jarvis_v0.1"
+# 0.5 razonable; sube si hay falsos positivos
+threshold = 0.5
+# Si threshold no se cumple en N segundos tras detección, vuelve a idle
+listen_timeout_s = 8.0
+# Mientras Jarvis habla, ignora micro (anti-feedback simple)
+mute_on_speak = true
+
+[capture]
+sample_rate = 16000
+# Frame de openWakeWord
+frame_size = 1280
+# VAD: si hay silencio prolongado, corta la grabación
+silence_threshold = 0.015
+silence_duration_s = 1.2
+max_utterance_s = 15.0
+
+[ui]
+# Socket UNIX donde el daemon publica estado para Quickshell + Waybar
+socket = "$XDG_RUNTIME_DIR/jarvis.sock"
+# Idle, listening, thinking, speaking, muted, error
+log_state_changes = true
+
+[paths]
+state_dir = "~/.local/state/jarvis"
+data_dir = "~/.local/share/jarvis"
+memory_db = "~/.local/share/jarvis/memory.db"
+audit_log = "~/.local/state/jarvis/audit.log"
+session_log = "~/.local/state/jarvis/session.log"
+
+[tools.system]
+# Apps permitidas para launch_app (allowlist estricta)
+allowed_apps = ["firefox", "kitty", "code", "obsidian", "spotify", "nautilus", "thunar", "yazi", "discord"]
+# Solo dispatchers Hyprland seguros — JAMÁS 'exec' arbitrario
+allowed_hypr_dispatchers = ["workspace", "togglefloating", "fullscreen", "movetoworkspace", "killactive"]
+
+[tools.search]
+# Endpoint SearXNG local; el daemon lo arranca on-demand
+endpoint = "http://127.0.0.1:8888"
+max_results = 5
+timeout_s = 10.0
+
+[tools.memory]
+# Top-K por defecto en recall
+default_top_k = 5
+# Si la confianza de similitud es < min_score, no devuelve
+min_score = 0.55

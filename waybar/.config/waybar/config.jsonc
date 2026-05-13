@@ -10,7 +10,7 @@
 
     "modules-left":   ["custom/launcher", "hyprland/workspaces", "hyprland/window"],
     "modules-center": ["clock"],
-    "modules-right":  ["custom/claude", "tray", "cpu", "memory", "custom/gpu", "pulseaudio", "network", "bluetooth", "battery", "custom/notifications", "custom/power"],
+    "modules-right":  ["custom/claude", "custom/jarvis", "tray", "cpu", "memory", "custom/gpu", "pulseaudio", "network", "bluetooth", "battery", "custom/notifications", "custom/power"],
 
     "custom/launcher": {
         "format": "",
@@ -55,6 +55,16 @@
         "interval": 5,
         "on-click": "~/.config/hypr/scripts/claude-popup.sh",
         "on-click-right": "kitty --class kitty-claude -e claude",
+        "tooltip": true
+    },
+
+    "custom/jarvis": {
+        "format": "{}",
+        "return-type": "json",
+        "exec": "~/.config/waybar/scripts/jarvis-status.sh",
+        "interval": 3,
+        "on-click": "jarvisctl toggle-listen",
+        "on-click-right": "jarvisctl ptt",
         "tooltip": true
     },
 

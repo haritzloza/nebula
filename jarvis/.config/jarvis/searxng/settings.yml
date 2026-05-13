@@ -1,0 +1,55 @@
+# SearXNG settings.yml — instancia local para Jarvis.
+# JSON habilitado, sin bot-detection (cliente local de confianza).
+
+use_default_settings: true
+
+general:
+  instance_name: "jarvis-local"
+  privacypolicy_url: false
+  donation_url: false
+  contact_url: false
+  enable_metrics: false
+
+search:
+  safe_search: 1
+  autocomplete: ""
+  default_lang: "es"
+  formats:
+    - html
+    - json
+
+server:
+  base_url: http://127.0.0.1:8888/
+  port: 8080
+  bind_address: "0.0.0.0"
+  # Secret_key se debe generar; SearXNG falla al arrancar sin uno.
+  # En el primer install, jarvisctl la rota.
+  secret_key: "CAMBIAR_TRAS_INSTALL_jarvisctl_regen_searxng_key"
+  limiter: false
+  image_proxy: false
+  http_protocol_version: "1.0"
+
+ui:
+  static_use_hash: true
+  default_theme: simple
+  theme_args:
+    simple_style: dark
+
+engines:
+  - name: duckduckgo
+    disabled: false
+  - name: brave
+    disabled: false
+  - name: google
+    disabled: false
+  - name: bing
+    disabled: false
+  - name: wikipedia
+    disabled: false
+
+outgoing:
+  request_timeout: 6.0
+  max_request_timeout: 10.0
+  useragent_suffix: "jarvis"
+  pool_connections: 10
+  pool_maxsize: 20
